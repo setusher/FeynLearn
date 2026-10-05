@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Design tokens (BUILD_SPEC section 4). Light theme only for now. */
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --ink: #1b1b18;
+  --ink-2: #5c5a52;
+  --line: #ddd9ce;
+  --accent: #1f3a5f;
+  --accent-hover: #172c48;
+  --status-solid: #2f6b45;
+  --status-shaky: #a66a00;
+  --status-missing: #a63a2b;
+  --tint-solid: #e3efe6;
+  --tint-shaky: #f6ebd3;
+  --tint-missing: #f5e1dd;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-solid: var(--status-solid);
+  --color-shaky: var(--status-shaky);
+  --color-missing: var(--status-missing);
+  --color-tint-solid: var(--tint-solid);
+  --color-tint-shaky: var(--tint-shaky);
+  --color-tint-missing: var(--tint-missing);
+
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+@layer base {
+  html {
+    font-size: 15.5px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  a {
+    color: var(--accent);
+  }
+}
