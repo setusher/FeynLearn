@@ -10,6 +10,37 @@ routes that call the LLM so the API key stays secret.
 
 The full product spec is in [`BUILD_SPEC.md`](./BUILD_SPEC.md).
 
+## What you can do
+
+| Goal | Feature | Where |
+| --- | --- | --- |
+| Understand | **Explain** a topic to a curious 10-year-old, a skeptical friend or a strict professor. The learner asks one question at a time and flags misconceptions inline. Voice input and read-aloud are available where the browser supports them. | `/session` |
+| Understand | **Catch the mistake**: read an explanation with 1-3 planted errors, flag them, then see what you caught, missed or flagged wrongly. | `/session` (toggle) |
+| Connect | **Gap map**: after a session, a graph of 5-8 key concepts marked solid, shaky or missing, with your own words as evidence and a before/after comparison. | `/gap-map` |
+| Connect | **Revisit**: spaced review (1, 3, 7, 14, 30 days) that comes back from a different angle each time. | `/revisit` |
+| Apply | **Apply it**: a realistic scenario, a 3-criterion rubric and a model answer. | `/apply` |
+| Track | **Understanding**: overall score, score over time per topic, and a per-topic table. | `/understanding` |
+| Ground | **Notes**: upload PDF/TXT or paste text; linked notes become the reference for every AI request on that topic. | `/notes` |
+
+First run: press "Try a sample topic" on the dashboard to load "Why do seasons happen?" with past
+attempts, so the Gap map comparison and charts have something to show. Settings (sidebar footer)
+exports everything as JSON or clears all data, including the sample.
+
+## Project layout
+
+```
+app/                 routes; app/api/{chat,analyze,reverse,challenge}/route.ts are the only server code
+components/          UI by area (shell, dashboard, session, gapmap, apply, understanding, revisit, notes, ui)
+lib/llm.ts           the one place that knows the provider and model (swap to Groq here)
+lib/prompts.ts       every LLM prompt
+lib/schemas.ts       Zod schemas for requests and model output
+lib/db.ts            Dexie (IndexedDB) tables; lib/types.ts is the data model
+lib/score.ts         understanding score formula      lib/sm2.ts  spaced-review scheduler
+lib/graph.ts         concept graph cleanup and Catch-the-mistake evidence
+lib/notes.ts         note excerpt selection           lib/speech.ts  Web Speech helpers
+tests/               Vitest unit tests (scheduler, score, graph, history, revisit, notes)
+```
+
 ## Setup
 
 ```bash
@@ -43,8 +74,8 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - [x] Phase 3: Analyze and Gap map
 - [x] Phase 4: Catch the mistake
 - [x] Phase 5: Apply it, Understanding, Revisit, Notes
-- [ ] Phase 6: Voice and polish
-- [ ] Phase 7: Design audit
+- [x] Phase 6: Voice and polish
+- [x] Phase 7: Design audit
 
 ## Decisions
 
@@ -114,6 +145,18 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
   under 6,000 characters, otherwise the ~800-character chunks sharing the most keywords with the
   topic (and focus), kept in their original order. The excerpt is sent with chat, analysis, catch
   the mistake and Apply it requests, and sessions show "Using your notes: <title>".
+- **Voice:** the mic (Explain chat and Apply it answers) uses the Web Speech API and is hidden
+  when the browser has no speech recognition (for example Firefox). Speech is appended to what
+  you already typed. "Read replies aloud" uses speech synthesis; the choice is remembered in this
+  browser only.
+- **Accessibility:** checked with axe-core on every page at 1440px and 390px (no violations).
+  Status always has a text label next to its colored square; the chat transcript is an
+  `aria-live` region; all inputs have labels. Small "shaky" text on its tinted callout uses a
+  darker shade (`--status-shaky-text`) to reach 4.5:1 contrast.
+- **Design audit:** no shadows, gradients, blur, translucency, emoji, animations (chart
+  draw-in is off) or radii above 4px; icons only for mic and upload. Concepts on the Gap map are
+  always true statements; a student's error appears as a misconception, never as a concept.
+- **Dark theme** was not built (the spec lists it as optional).
 - **Rate limit:** 20 API requests per minute per IP, in memory.
 - **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
 
@@ -122,6 +165,8 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - Data is per browser. Clearing site data or switching devices loses it (use Settings > Export).
 - Gemini's free tier allows only a few requests per minute and models are sometimes overloaded;
   the app shows a "try again" message when both models are unavailable.
+- Voice input needs a browser with speech recognition (Chrome, Edge, Safari) and microphone
+  permission.
 - Scanned PDFs (images only) have no extractable text; paste the text instead.
 - The per-IP rate limit is in memory and best-effort; it resets whenever the serverless function
   restarts.

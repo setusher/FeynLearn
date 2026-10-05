@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Menu, X } from "lucide-react";
 import { useUI } from "@/lib/store";
 import { NavLinks } from "./NavLinks";
 import { TopBar } from "./TopBar";
@@ -66,10 +65,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           onClick={() => setNavOpen(!navOpen)}
           aria-expanded={navOpen}
           aria-controls="mobile-nav"
-          className="inline-flex h-9 items-center gap-2 rounded-sm border border-line px-3 text-sm"
+          className="inline-flex h-9 items-center rounded-sm border border-line px-3 text-sm"
         >
-          {navOpen ? <X size={16} strokeWidth={1.5} /> : <Menu size={16} strokeWidth={1.5} />}
-          Menu
+          {navOpen ? "Close" : "Menu"}
         </button>
       </header>
 

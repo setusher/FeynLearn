@@ -91,6 +91,7 @@ ${previousConcepts.map((c) => `- ${c.id}: ${c.label}`).join("\n")}`
   return `You are an expert tutor grading how well a student understands "${topic}", based on a transcript in which the student explained it to a learner.
 
 Produce a concept map of 5 to 8 key concepts that a complete explanation of "${topic}" must include${notesExcerpt ? " (use the reference notes as the source of truth for what belongs)" : ""}.
+Each concept label must be a CORRECT statement of an idea a good explanation contains. Never turn the student's error into a concept; if they stated something false, the related correct concept is "shaky" or "missing" and the error goes under misconceptions.
 For each concept:
 - status "solid": the student stated it correctly and clearly.
 - status "shaky": mentioned but vague, partly wrong, or only implied.

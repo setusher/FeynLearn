@@ -56,7 +56,11 @@ export const AnalyzeModelSchema = z.object({
     .array(
       z.object({
         id: z.string().describe("Short kebab-case id, e.g. 'axial-tilt'. Reuse previous ids for the same idea."),
-        label: z.string().describe("The concept stated as a short claim, max 8 words"),
+        label: z
+          .string()
+          .describe(
+            "A TRUE claim a good explanation includes, max 8 words. Never a false statement: if the student said 'vaccines kill viruses directly', the concept is 'Vaccines train the immune system' (status shaky or missing).",
+          ),
         status: z.enum(["solid", "shaky", "missing"]),
         evidence: z
           .string()

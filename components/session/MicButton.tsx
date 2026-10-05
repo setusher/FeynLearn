@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Square } from "lucide-react";
+import { Mic } from "lucide-react";
 
 /** Toggle for voice input. Render only when speech input is supported. */
 export function MicButton({
@@ -25,7 +25,7 @@ export function MicButton({
         listening ? "border-missing bg-tint-missing text-ink" : "border-line bg-surface hover:bg-bg"
       }`}
     >
-      {listening ? <Square size={14} strokeWidth={1.5} aria-hidden /> : <Mic size={16} strokeWidth={1.5} aria-hidden />}
+      <Mic size={16} strokeWidth={1.5} aria-hidden />
       {listening ? "Stop" : "Mic"}
     </button>
   );
