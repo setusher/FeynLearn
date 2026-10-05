@@ -32,3 +32,59 @@ export const ChatResponseSchema = z.object({
   ),
 });
 export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+// ---- /api/analyze ----
+
+const TurnSchema = z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.message) });
+
+export const AnalyzeRequestSchema = z.object({
+  topic: z.string().trim().min(1).max(LIMITS.topic),
+  transcript: z.array(TurnSchema).min(1).max(LIMITS.history + 2),
+  notesExcerpt: z.string().max(LIMITS.notes).optional(),
+  focus: z.string().max(LIMITS.topic).optional(),
+  /** Concepts from the previous analysis of this topic, so attempts can be compared node by node. */
+  previousConcepts: z
+    .array(z.object({ id: z.string().max(60), label: z.string().max(120) }))
+    .max(8)
+    .optional(),
+});
+export type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
+
+export const AnalyzeModelSchema = z.object({
+  concepts: z
+    .array(
+      z.object({
+        id: z.string().describe("Short kebab-case id, e.g. 'axial-tilt'. Reuse previous ids for the same idea."),
+        label: z.string().describe("The concept stated as a short claim, max 8 words"),
+        status: z.enum(["solid", "shaky", "missing"]),
+        evidence: z
+          .string()
+          .describe("A short verbatim quote from the student's messages, or exactly 'not mentioned'"),
+        note: z.string().describe("One sentence explaining the status"),
+        dependsOn: z.array(z.string()).describe("Ids of concepts this one requires; must not form cycles"),
+      }),
+    )
+    .min(5)
+    .max(8),
+  misconceptions: z.array(MisconceptionSchema).max(6),
+  summary: z.string().describe("2-3 sentences addressed to the student as 'you'"),
+  accuracy: z
+    .number()
+    .min(0)
+    .max(100)
+    .describe("0-100: how factually correct the student's statements were"),
+});
+
+export type AnalyzeResponse = {
+  concepts: {
+    id: string;
+    label: string;
+    status: "solid" | "shaky" | "missing";
+    evidence: string;
+    note: string;
+    dependsOn: string[];
+  }[];
+  misconceptions: { name: string; correction: string }[];
+  summary: string;
+  scores: { coverage: number; accuracy: number };
+};

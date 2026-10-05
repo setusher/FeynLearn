@@ -40,7 +40,7 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 
 - [x] Phase 1: shell, theme, sidebar layout, route stubs, dashboard with sample data and empty state
 - [x] Phase 2: Explain mode
-- [ ] Phase 3: Analyze and Gap map
+- [x] Phase 3: Analyze and Gap map
 - [ ] Phase 4: Catch the mistake
 - [ ] Phase 5: Apply it, Understanding, Revisit, Notes
 - [ ] Phase 6: Voice and polish
@@ -75,6 +75,19 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
   `/session` never leaves empty records. The session id is added to the URL so a refresh resumes
   the conversation. Discarding a session also removes its topic if nothing else uses it.
 - **Switching modes mid-session** asks first, then keeps the conversation as an unfinished session.
+- **Analysis scores:** coverage is computed from the concept statuses (solid = 1, shaky = 0.5,
+  missing = 0, averaged), not taken from the model, so it always matches the map. Accuracy comes
+  from the model but is capped 15 points lower for each misconception it lists.
+- **Comparable attempts:** when a topic was analyzed before, its concept ids and labels are sent
+  with the new analysis and the model is asked to reuse them, so the Gap map can show
+  "was missing" / "was shaky" per node. Concepts are matched by id, then by label.
+- **Concept graph safety:** model output is cleaned in `lib/graph.ts` (unique slug ids, unknown
+  dependencies dropped, cycles broken) before it is saved or drawn.
+- **Gap map layout:** dagre, top to bottom, foundations first. Nodes cannot be dragged and scroll
+  does not zoom (so the page scrolls normally); zoom buttons sit in a row above the map. An
+  "All concepts" table under the map gives the same information as text for keyboard and screen
+  reader users and small screens.
+- **Analyzing a session** updates the topic's score and its spaced-review schedule.
 - **Rate limit:** 20 API requests per minute per IP, in memory.
 - **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
 

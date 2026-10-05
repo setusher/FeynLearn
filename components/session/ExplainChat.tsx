@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { Label, Select } from "@/components/ui/Field";
@@ -9,8 +10,15 @@ import { ApiError, postJson } from "@/lib/client";
 import { db } from "@/lib/db";
 import { PERSONAS, isPersonaId, type PersonaId } from "@/lib/personas";
 import { openingLine } from "@/lib/prompts";
-import type { ChatRequest, ChatResponse } from "@/lib/schemas";
-import { discardSession, endSession, saveMessages, startSession } from "@/lib/sessions";
+import type { AnalyzeRequest, AnalyzeResponse, ChatRequest, ChatResponse } from "@/lib/schemas";
+import {
+  discardSession,
+  endSession,
+  previousAnalysis,
+  saveAnalysis,
+  saveMessages,
+  startSession,
+} from "@/lib/sessions";
 import type { Message } from "@/lib/types";
 import { Composer } from "./Composer";
 import { SessionHeader } from "./SessionHeader";
@@ -30,7 +38,7 @@ type Props = {
   onProgress: (info: ProgressInfo) => void;
 };
 
-type Phase = "loading" | "active" | "ended" | "discarded" | "missing";
+type Phase = "loading" | "active" | "analyzing" | "ended" | "discarded" | "missing";
 
 const SOFT_TURN_LIMIT = 8;
 
@@ -45,6 +53,9 @@ export function ExplainChat(props: Props) {
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState("");
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const router = useRouter();
   const endRef = useRef<HTMLDivElement>(null);
 
   // Resume a saved session after a refresh.
@@ -58,6 +69,7 @@ export function ExplainChat(props: Props) {
         return;
       }
       setMessages(s.messages);
+      setTopicId(s.concepts?.length ? s.topicId : null);
       if (isPersonaId(s.persona)) setPersona(s.persona);
       setPhase(s.endedAt ? "ended" : "active");
     });
@@ -117,9 +129,36 @@ export function ExplainChat(props: Props) {
     setError("");
   }
 
-  async function onEnd() {
+  async function analyze() {
+    if (!sessionId) return;
+    const before = phase;
+    setAnalyzeError("");
+    setPhase("analyzing");
+    try {
+      const session = await db.sessions.get(sessionId);
+      if (!session) throw new Error("missing");
+      const previous = await previousAnalysis(session.topicId, sessionId);
+      const body: AnalyzeRequest = {
+        topic,
+        focus,
+        transcript: session.messages.slice(-42).map(({ role, text }) => ({ role, text })),
+        previousConcepts: previous?.concepts?.map(({ id, label }) => ({ id, label })),
+      };
+      const result = await postJson<AnalyzeResponse>("/api/analyze", body);
+      const tid = await saveAnalysis(sessionId, result);
+      router.push(`/gap-map?topic=${encodeURIComponent(tid)}&session=${encodeURIComponent(sessionId)}`);
+    } catch (err) {
+      setAnalyzeError(
+        err instanceof ApiError ? err.message : "Could not save the analysis. Please try again.",
+      );
+      setPhase(before === "ended" ? "ended" : "active");
+    }
+  }
+
+  async function endWithoutAnalysis() {
     if (!sessionId) return;
     await endSession(sessionId);
+    setAnalyzeError("");
     setPhase("ended");
   }
 
@@ -132,9 +171,11 @@ export function ExplainChat(props: Props) {
   if (phase === "loading") return <StatusLine>Loading session...</StatusLine>;
 
   const actions =
-    phase === "active" ? (
+    phase === "analyzing" ? (
+      <Button disabled>Analyzing...</Button>
+    ) : phase === "active" ? (
       <>
-        <Button onClick={onEnd} disabled={!sessionId || pending !== null}>
+        <Button onClick={analyze} disabled={!sessionId || pending !== null}>
           End session and analyze
         </Button>
         <Button variant="secondary" onClick={() => setConfirmDiscard(true)} disabled={!started}>
@@ -206,7 +247,23 @@ export function ExplainChat(props: Props) {
             )}
             <div ref={endRef} />
 
-            {phase === "active" ? (
+            {analyzeError && (
+              <div className="mt-4 flex flex-col gap-2">
+                <ErrorLine message={`Analysis failed. ${analyzeError}`} onRetry={analyze} />
+                <button type="button" onClick={endWithoutAnalysis} className="self-start text-sm text-accent underline underline-offset-2">
+                  End without analysis
+                </button>
+              </div>
+            )}
+
+            {phase === "analyzing" ? (
+              <div className="mt-6" role="status">
+                <p>Analyzing your explanation...</p>
+                <p className="mt-1 text-sm text-ink-2">
+                  Checking which ideas you covered and how they connect. This can take up to half a minute.
+                </p>
+              </div>
+            ) : phase === "active" ? (
               <Composer
                 disabled={pending !== null}
                 onSend={send}
@@ -218,10 +275,27 @@ export function ExplainChat(props: Props) {
               />
             ) : (
               <div className="mt-6 border-l-[3px] border-accent bg-surface px-4 py-3">
-                <p>Session saved. Analysis and the Gap map arrive in the next build phase.</p>
-                <p className="mt-2">
-                  <Link href="/" className="underline underline-offset-2">Back to dashboard</Link>
-                </p>
+                {topicId ? (
+                  <>
+                    <p>This session has ended and was analyzed.</p>
+                    <p className="mt-2">
+                      <Link
+                        href={`/gap-map?topic=${encodeURIComponent(topicId)}&session=${encodeURIComponent(sessionId ?? "")}`}
+                        className="underline underline-offset-2"
+                      >
+                        Open the Gap map
+                      </Link>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>This session has ended without an analysis.</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <Button onClick={analyze}>Analyze it now</Button>
+                      <Link href="/" className="text-sm underline underline-offset-2">Back to dashboard</Link>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </>

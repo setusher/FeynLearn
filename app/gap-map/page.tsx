@@ -1,9 +1,8 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { GapMap } from "@/components/gapmap/GapMap";
 
-export default function GapMapPage() {
-  return (
-    <div className="max-w-[960px]">
-      <PageHeader title="Gap map" intro="A map of the ideas behind a topic, marked solid, shaky or missing from your last session. Coming in phase 3." />
-    </div>
-  );
+export default async function GapMapPage({ searchParams }: PageProps<"/gap-map">) {
+  const params = await searchParams;
+  const topic = typeof params.topic === "string" ? params.topic : undefined;
+  const session = typeof params.session === "string" ? params.session : undefined;
+  return <GapMap key={`${topic ?? ""}|${session ?? ""}`} topicParam={topic} sessionParam={session} />;
 }

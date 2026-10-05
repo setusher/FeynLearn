@@ -73,3 +73,12 @@
     color: var(--accent);
   }
 }
+
+/* React Flow: keep the map plain (no translucent attribution panel). */
+.react-flow__attribution {
+  background: transparent;
+  font-size: 10px;
+}
+.react-flow__attribution a {
+  color: var(--ink-2);
+}

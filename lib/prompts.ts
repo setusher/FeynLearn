@@ -65,3 +65,34 @@ ${focus ? `- The student wants to concentrate on this part of the topic: "${focu
       : "Keep probing."
   }${notesBlock(notesExcerpt)}`;
 }
+
+export function analyzeInstructions(args: {
+  topic: string;
+  focus?: string;
+  notesExcerpt?: string;
+  previousConcepts?: { id: string; label: string }[];
+}): string {
+  const { topic, focus, notesExcerpt, previousConcepts } = args;
+  const previous = previousConcepts?.length
+    ? `
+
+This topic was analyzed before. Reuse these concepts (same ids and labels) wherever the same idea applies, so attempts can be compared. Add or drop concepts only if clearly needed.
+${previousConcepts.map((c) => `- ${c.id}: ${c.label}`).join("\n")}`
+    : "";
+
+  return `You are an expert tutor grading how well a student understands "${topic}", based on a transcript in which the student explained it to a learner.
+
+Produce a concept map of 5 to 8 key concepts that a complete explanation of "${topic}" must include${notesExcerpt ? " (use the reference notes as the source of truth for what belongs)" : ""}.
+For each concept:
+- status "solid": the student stated it correctly and clearly.
+- status "shaky": mentioned but vague, partly wrong, or only implied.
+- status "missing": not mentioned, or stated wrongly with no correction.
+- evidence: a short verbatim quote (under 20 words) from the STUDENT's messages that supports the status, or exactly "not mentioned". Never quote the learner, never invent quotes.
+- note: one plain sentence explaining the status.
+- dependsOn: ids of the concepts this one builds on. Foundations have none. The graph must not contain cycles.
+
+Be strict and evidence-based. Only the student's messages count; the learner's questions are context. Do not give credit for ideas the student did not express.
+List each factual error the student made under misconceptions (name plus one-sentence correction). Do not list omissions there.
+accuracy: 0-100 for how factually correct the student's statements were (100 = nothing false).
+summary: 2-3 plain sentences to the student ("you"), naming what was strong and the most important gap. No praise words like "great", no exclamation marks.${focus ? `\nThe student was concentrating on: "${focus}".` : ""}${previous}${notesBlock(notesExcerpt)}`;
+}
