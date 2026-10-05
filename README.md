@@ -42,7 +42,7 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - [x] Phase 2: Explain mode
 - [x] Phase 3: Analyze and Gap map
 - [x] Phase 4: Catch the mistake
-- [ ] Phase 5: Apply it, Understanding, Revisit, Notes
+- [x] Phase 5: Apply it, Understanding, Revisit, Notes
 - [ ] Phase 6: Voice and polish
 - [ ] Phase 7: Design audit
 
@@ -97,6 +97,23 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
   concept. A later round nudges that concept one step (a miss drops solid to shaky, a catch lifts
   missing to shaky) and the detail panel lists the results. Explaining stays the stronger evidence.
 - **"New explanation"** replaces the unfinished round instead of keeping it.
+- **Shared rescoring:** every finished activity (analysis, catch the mistake, graded challenge)
+  calls `rescoreTopic` in `lib/progress.ts`, which recomputes the topic score and moves the next
+  review with SM-2. So an Apply it revisit reschedules the topic just like a session.
+- **Apply it:** an unanswered scenario is kept (with your draft answer, saved when you leave the
+  box) until you submit it or ask for a new one. New scenarios are told to differ from the last five.
+- **Understanding chart:** one topic at a time (a topic select), so it is a single series in the
+  accent color with no legend. Each point is the score right after a finished activity, recomputed
+  with the same formula. The draw-in animation is off to keep motion to short transitions.
+- **Revisit angles** rotate persona -> analogy -> apply -> catch the mistake. The angle is
+  recorded when you press "Start revisit". "New persona" picks a persona different from the last
+  explain session. The analogy angle adds a rule to the learner prompt to ask for an analogy and
+  probe where it breaks down.
+- **Notes:** PDF text is extracted in the browser with pdfjs-dist (its worker is bundled by Next).
+  A topic links to one note; a note can serve several topics. Excerpts: the whole note if it is
+  under 6,000 characters, otherwise the ~800-character chunks sharing the most keywords with the
+  topic (and focus), kept in their original order. The excerpt is sent with chat, analysis, catch
+  the mistake and Apply it requests, and sessions show "Using your notes: <title>".
 - **Rate limit:** 20 API requests per minute per IP, in memory.
 - **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
 
@@ -105,5 +122,6 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - Data is per browser. Clearing site data or switching devices loses it (use Settings > Export).
 - Gemini's free tier allows only a few requests per minute and models are sometimes overloaded;
   the app shows a "try again" message when both models are unavailable.
+- Scanned PDFs (images only) have no extractable text; paste the text instead.
 - The per-IP rate limit is in memory and best-effort; it resets whenever the serverless function
   restarts.
