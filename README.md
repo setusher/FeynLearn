@@ -25,6 +25,8 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 | Name             | Required | Notes                                                        |
 | ---------------- | -------- | ------------------------------------------------------------ |
 | `GEMINI_API_KEY` | Yes      | Google AI Studio key (free tier works). Server-side only.    |
+| `GEMINI_MODEL`   | No       | Main model. Default `gemini-3.8-flash`.                      |
+| `GEMINI_FALLBACK_MODEL` | No | Used when the main model is overloaded or rate limited. Default `gemini-3.5-flash-lite`. |
 
 ## Deploy to Vercel
 
@@ -37,7 +39,7 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 ## Build status
 
 - [x] Phase 1: shell, theme, sidebar layout, route stubs, dashboard with sample data and empty state
-- [ ] Phase 2: Explain mode
+- [x] Phase 2: Explain mode
 - [ ] Phase 3: Analyze and Gap map
 - [ ] Phase 4: Catch the mistake
 - [ ] Phase 5: Apply it, Understanding, Revisit, Notes
@@ -61,10 +63,25 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - **Spaced review:** scores below 50 reset the interval to 1 day, 50-69 repeat the current
   interval, 70+ advance through 1, 3, 7, 14, 30 days, then grow by the SM-2 ease factor.
 - **Top bar topic** reflects the topic typed in "Start a session" or the active session.
+- **Structured output:** AI SDK 7 deprecates `generateObject`, so `lib/llm.ts` uses
+  `generateText` with `Output.object({ schema })`. Output is validated with Zod, retried once if
+  malformed, then reported as a plain error message.
+- **Models:** `gemini-2.5-flash` is no longer available to new API keys, so the default is
+  `gemini-3.8-flash`. Because free-tier models are often overloaded (HTTP 503) and quotas are per
+  model, a failed call is retried once on `gemini-3.5-flash-lite` before showing an error.
+- **Chat replies are not streamed.** The reply and the misconception flag arrive together as one
+  JSON object, which keeps the callout in sync with its message.
+- **Sessions are saved on the first message**, not when the page opens, so browsing to
+  `/session` never leaves empty records. The session id is added to the URL so a refresh resumes
+  the conversation. Discarding a session also removes its topic if nothing else uses it.
+- **Switching modes mid-session** asks first, then keeps the conversation as an unfinished session.
+- **Rate limit:** 20 API requests per minute per IP, in memory.
 - **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
 
 ## Known limitations
 
 - Data is per browser. Clearing site data or switching devices loses it (use Settings > Export).
+- Gemini's free tier allows only a few requests per minute and models are sometimes overloaded;
+  the app shows a "try again" message when both models are unavailable.
 - The per-IP rate limit is in memory and best-effort; it resets whenever the serverless function
   restarts.

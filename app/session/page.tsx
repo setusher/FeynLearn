@@ -1,22 +1,36 @@
+import { StartSession } from "@/components/dashboard/StartSession";
+import { SessionView } from "@/components/session/SessionView";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { personaLabel } from "@/lib/personas";
+import { isPersonaId } from "@/lib/personas";
+import { LIMITS } from "@/lib/limits";
+
+function param(value: string | string[] | undefined): string | undefined {
+  const v = Array.isArray(value) ? value[0] : value;
+  return v?.trim() || undefined;
+}
 
 export default async function SessionPage({ searchParams }: PageProps<"/session">) {
   const params = await searchParams;
-  const topic = typeof params.topic === "string" ? params.topic : "";
-  const mode = params.mode === "reverse" ? "Catch the mistake" : "Explain";
-  const persona = typeof params.persona === "string" ? params.persona : undefined;
+  const topic = param(params.topic)?.slice(0, LIMITS.topic);
+  const persona = param(params.persona);
+
+  if (!topic) {
+    return (
+      <div className="max-w-[720px]">
+        <PageHeader title="New session" intro="Pick a topic and a way to practise it." />
+        <StartSession hasNotes={false} />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-[960px]">
-      <PageHeader
-        title={topic || "New session"}
-        intro={
-          mode === "Explain"
-            ? `Explain mode, talking to a ${personaLabel(persona).toLowerCase()}. The chat arrives in phase 2.`
-            : "Catch the mistake mode. Arrives in phase 4."
-        }
-      />
-    </div>
+    <SessionView
+      key={`${topic}|${param(params.sid) ?? ""}`}
+      topic={topic}
+      mode={param(params.mode) === "reverse" ? "reverse" : "explain"}
+      persona={isPersonaId(persona) ? persona : "child"}
+      sid={param(params.sid)}
+      focus={param(params.focus)?.slice(0, LIMITS.topic)}
+    />
   );
 }
