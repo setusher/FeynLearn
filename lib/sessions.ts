@@ -1,7 +1,6 @@
 import { db, getOrCreateTopic, newId } from "./db";
 import type { AnalyzeResponse } from "./schemas";
-import { topicScore } from "./score";
-import { schedule } from "./sm2";
+import { rescoreTopic } from "./progress";
 import type { Message, Mode, ReverseResult, Session } from "./types";
 
 // Persistence helpers for sessions. A session record is created on the first
@@ -66,19 +65,9 @@ export async function previousAnalysis(topicId: string, excludeId?: string): Pro
  */
 async function finishAndScore(updated: Session, now: number): Promise<string> {
   return db.transaction("rw", [db.sessions, db.topics, db.challenges], async () => {
-    const [sessions, challenges, topic] = await Promise.all([
-      db.sessions.where("topicId").equals(updated.topicId).toArray(),
-      db.challenges.where("topicId").equals(updated.topicId).toArray(),
-      db.topics.get(updated.topicId),
-    ]);
-    const all = sessions.map((s) => (s.id === updated.id ? updated : s));
-    updated.score = topicScore(all, challenges) ?? undefined;
     await db.sessions.put(updated);
-
-    if (topic && updated.score !== undefined) {
-      const next = schedule(topic, updated.score, now);
-      await db.topics.update(topic.id, { ...next, latestScore: updated.score });
-    }
+    const score = await rescoreTopic(updated.topicId, now);
+    await db.sessions.update(updated.id, { score });
     return updated.topicId;
   });
 }

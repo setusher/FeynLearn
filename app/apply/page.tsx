@@ -1,9 +1,8 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ApplyIt } from "@/components/apply/ApplyIt";
 
-export default function ApplyPage() {
-  return (
-    <div className="max-w-[960px]">
-      <PageHeader title="Apply it" intro="Use a topic in a realistic scenario and get feedback on your reasoning. Coming in phase 5." />
-    </div>
-  );
+export default async function ApplyPage({ searchParams }: PageProps<"/apply">) {
+  const params = await searchParams;
+  const topic = typeof params.topic === "string" ? params.topic : undefined;
+  const focus = typeof params.focus === "string" ? params.focus.slice(0, 200) : undefined;
+  return <ApplyIt key={topic ?? ""} topicParam={topic} focus={focus} />;
 }
