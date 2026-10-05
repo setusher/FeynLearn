@@ -2,6 +2,7 @@ import type { ModelMessage } from "ai";
 import { generateStructured } from "@/lib/llm";
 import type { PersonaId } from "@/lib/personas";
 import { explainInstructions } from "@/lib/prompts";
+import { clamp } from "@/lib/limits";
 import { handleJson } from "@/lib/route";
 import { ChatRequestSchema, ChatResponseSchema, type ChatResponse } from "@/lib/schemas";
 
@@ -35,6 +36,6 @@ export async function POST(req: Request) {
       messages,
       thinking: "low",
     });
-    return { reply: out.reply.trim(), misconception: out.misconception };
+    return { reply: clamp(out.reply), misconception: out.misconception };
   });
 }

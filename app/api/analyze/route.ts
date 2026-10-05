@@ -1,6 +1,7 @@
 import { coverageOf, sanitizeConcepts } from "@/lib/graph";
 import { generateStructured } from "@/lib/llm";
 import { analyzeInstructions } from "@/lib/prompts";
+import { clamp, LIMITS } from "@/lib/limits";
 import { handleJson } from "@/lib/route";
 import { AnalyzeModelSchema, AnalyzeRequestSchema, type AnalyzeResponse } from "@/lib/schemas";
 
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
     const concepts = sanitizeConcepts(
       out.concepts.map((c) => ({
         ...c,
+        label: clamp(c.label, LIMITS.label),
         evidence: c.evidence.trim() || "not mentioned",
         note: c.note.trim(),
       })),

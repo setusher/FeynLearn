@@ -1,5 +1,6 @@
 import { generateStructured } from "@/lib/llm";
 import { challengeGenerateInstructions, challengeGradeInstructions } from "@/lib/prompts";
+import { clamp } from "@/lib/limits";
 import { handleJson } from "@/lib/route";
 import {
   ChallengeGradeSchema,
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
         prompt: `Write the scenario about "${body.topic}" now.`,
         temperature: 0.9,
       });
-      return { scenario: out.scenario.trim() };
+      return { scenario: clamp(out.scenario) };
     }
 
     const out = await generateStructured({

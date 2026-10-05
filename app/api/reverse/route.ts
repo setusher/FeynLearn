@@ -1,6 +1,7 @@
 import { generateStructured } from "@/lib/llm";
 import { reverseGenerateInstructions, reverseJudgeInstructions } from "@/lib/prompts";
 import { errorIndexes, reverseScore } from "@/lib/reverse";
+import { clamp } from "@/lib/limits";
 import { handleJson } from "@/lib/route";
 import {
   ReverseGenerateModelSchema,
@@ -25,12 +26,12 @@ export async function POST(req: Request) {
       return {
         paragraphs: out.paragraphs.map((p) => ({
           // Strip any leading "1." the model may add; the UI numbers paragraphs itself.
-          text: p.text.trim().replace(/^\d+[.)]\s+/, ""),
+          text: clamp(p.text.trim().replace(/^\d+[.)]\s+/, "")),
           hasError: p.hasError,
           ...(p.hasError
             ? {
-                errorNote: p.errorNote?.trim() || "This paragraph contains a planted error.",
-                correctFact: p.correctFact?.trim() || p.errorNote?.trim() || "",
+                errorNote: clamp(p.errorNote ?? "") || "This paragraph contains a planted error.",
+                correctFact: clamp(p.correctFact || p.errorNote || ""),
                 ...(p.conceptId && known.has(p.conceptId) ? { conceptId: p.conceptId } : {}),
               }
             : {}),

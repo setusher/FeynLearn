@@ -20,7 +20,7 @@ export const ChatRequestSchema = z.object({
   focus: z.string().max(LIMITS.topic).optional(),
   angle: z.enum(["analogy"]).optional(),
   history: z
-    .array(z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.message) }))
+    .array(z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.generated) }))
     .max(LIMITS.history),
   userMessage: z.string().trim().min(1).max(LIMITS.message),
 });
@@ -36,7 +36,7 @@ export type ChatResponse = z.infer<typeof ChatResponseSchema>;
 
 // ---- /api/analyze ----
 
-const TurnSchema = z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.message) });
+const TurnSchema = z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.generated) });
 
 export const AnalyzeRequestSchema = z.object({
   topic: z.string().trim().min(1).max(LIMITS.topic),
@@ -45,7 +45,7 @@ export const AnalyzeRequestSchema = z.object({
   focus: z.string().max(LIMITS.topic).optional(),
   /** Concepts from the previous analysis of this topic, so attempts can be compared node by node. */
   previousConcepts: z
-    .array(z.object({ id: z.string().max(60), label: z.string().max(120) }))
+    .array(z.object({ id: z.string().max(60), label: z.string().max(LIMITS.label) }))
     .max(8)
     .optional(),
 });
@@ -95,10 +95,10 @@ export type AnalyzeResponse = {
 export const DIFFICULTIES = ["obvious", "moderate", "subtle"] as const;
 
 const ParagraphSchema = z.object({
-  text: z.string().max(1500),
+  text: z.string().max(LIMITS.generated),
   hasError: z.boolean(),
-  errorNote: z.string().max(600).optional(),
-  correctFact: z.string().max(600).optional(),
+  errorNote: z.string().max(LIMITS.generated).optional(),
+  correctFact: z.string().max(LIMITS.generated).optional(),
   conceptId: z.string().max(60).optional(),
 });
 
@@ -109,7 +109,7 @@ export const ReverseRequestSchema = z.discriminatedUnion("action", [
     difficulty: z.enum(DIFFICULTIES),
     notesExcerpt: z.string().max(LIMITS.notes).optional(),
     concepts: z
-      .array(z.object({ id: z.string().max(60), label: z.string().max(120) }))
+      .array(z.object({ id: z.string().max(60), label: z.string().max(LIMITS.label) }))
       .max(8)
       .optional(),
   }),
@@ -179,13 +179,13 @@ export const ChallengeRequestSchema = z.discriminatedUnion("action", [
     topic: z.string().trim().min(1).max(LIMITS.topic),
     notesExcerpt: z.string().max(LIMITS.notes).optional(),
     /** Earlier scenarios for this topic, so a new one is different. */
-    avoid: z.array(z.string().max(1500)).max(5).optional(),
+    avoid: z.array(z.string().max(LIMITS.generated)).max(5).optional(),
     focus: z.string().max(LIMITS.topic).optional(),
   }),
   z.object({
     action: z.literal("grade"),
     topic: z.string().trim().min(1).max(LIMITS.topic),
-    scenario: z.string().min(1).max(1500),
+    scenario: z.string().min(1).max(LIMITS.generated),
     answer: z.string().trim().min(1).max(4000),
     notesExcerpt: z.string().max(LIMITS.notes).optional(),
   }),
