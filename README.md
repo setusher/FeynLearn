@@ -67,6 +67,9 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 3. Add `GEMINI_API_KEY` under Settings > Environment Variables.
 4. Deploy. No other configuration, database or paid service is needed.
 
+Each API route sets `maxDuration = 60` (seconds). AI calls usually take 2-30 seconds; this is well
+inside the Hobby plan limit and stops a stuck call from running for minutes.
+
 ## Build status
 
 - [x] Phase 1: shell, theme, sidebar layout, route stubs, dashboard with sample data and empty state

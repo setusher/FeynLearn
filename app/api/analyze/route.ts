@@ -6,6 +6,8 @@ import { handleJson } from "@/lib/route";
 import { AnalyzeModelSchema, AnalyzeRequestSchema, type AnalyzeResponse } from "@/lib/schemas";
 
 export const runtime = "nodejs";
+// LLM calls take 2-30s; cap well inside Vercel's Hobby limit (300s) so a stuck call fails fast.
+export const maxDuration = 60;
 
 // Each misconception caps accuracy 15 points lower, whatever the model says.
 const MISCONCEPTION_PENALTY = 15;

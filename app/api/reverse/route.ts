@@ -12,6 +12,8 @@ import {
 } from "@/lib/schemas";
 
 export const runtime = "nodejs";
+// LLM calls take 2-30s; cap well inside Vercel's Hobby limit (300s) so a stuck call fails fast.
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   return handleJson(req, ReverseRequestSchema, async (body): Promise<ReverseGenerateResponse | ReverseJudgeResponse> => {
