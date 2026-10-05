@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MicButton } from "@/components/session/MicButton";
 import { Button } from "@/components/ui/Button";
 import { Label, Select, TextArea, TextInput } from "@/components/ui/Field";
 import { ErrorLine, PageHeader, StatusLine } from "@/components/ui/PageHeader";
@@ -11,6 +12,7 @@ import { formatDate } from "@/lib/format";
 import { notesExcerptFor } from "@/lib/noteStore";
 import { useAllData } from "@/lib/hooks";
 import type { ChallengeGenerateResponse, ChallengeGradeResponse, ChallengeRequest } from "@/lib/schemas";
+import { useSpeechInput } from "@/lib/speech";
 import { useUI } from "@/lib/store";
 import type { Challenge } from "@/lib/types";
 import { ChallengeResult } from "./ChallengeResult";
@@ -26,6 +28,11 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   const [answer, setAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState<"generating" | "grading" | null>(null);
   const [error, setError] = useState<{ message: string; retry: () => void } | null>(null);
+  const voiceBase = useRef("");
+  const voice = useSpeechInput((finalText, interim) => {
+    const spoken = `${finalText}${interim}`.trim();
+    setAnswer(`${voiceBase.current}${voiceBase.current && spoken ? " " : ""}${spoken}`.slice(0, 4000));
+  });
 
   const topics = data ? [...data.topics].sort((a, b) => a.name.localeCompare(b.name)) : [];
   const selectedId = choice ?? topics[0]?.id ?? NEW_TOPIC;
@@ -79,6 +86,7 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   async function grade(challenge: Challenge) {
     const text = draft.trim();
     if (!text) return;
+    if (voice.listening) voice.stop();
     setError(null);
     setBusy("grading");
     try {
@@ -176,11 +184,23 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
                 onBlur={() => void saveDraftAnswer(current.id, draft)}
                 placeholder="Explain what is going on and why. Say what you are assuming."
               />
-              <div className="mt-3 flex items-center gap-4">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                {voice.supported && (
+                  <MicButton
+                    listening={voice.listening}
+                    disabled={busy !== null}
+                    onStart={() => {
+                      voiceBase.current = draft.trim();
+                      voice.start();
+                    }}
+                    onStop={voice.stop}
+                  />
+                )}
                 <Button onClick={() => grade(current)} disabled={busy !== null || !draft.trim()}>
                   {busy === "grading" ? "Checking your answer..." : "Submit answer"}
                 </Button>
               </div>
+              {voice.error && <p className="mt-2 text-sm text-missing" role="alert">{voice.error}</p>}
             </div>
           )}
         </section>

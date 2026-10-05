@@ -9,6 +9,7 @@ import { ErrorLine, StatusLine } from "@/components/ui/PageHeader";
 import { ApiError, postJson } from "@/lib/client";
 import { db } from "@/lib/db";
 import { notesExcerptFor } from "@/lib/noteStore";
+import { useReadAloud } from "@/lib/speech";
 import { PERSONAS, isPersonaId, type PersonaId } from "@/lib/personas";
 import { openingLine } from "@/lib/prompts";
 import type { AnalyzeRequest, AnalyzeResponse, ChatRequest, ChatResponse } from "@/lib/schemas";
@@ -60,6 +61,7 @@ export function ExplainChat(props: Props) {
   const [analyzeError, setAnalyzeError] = useState("");
   const [topicId, setTopicId] = useState<string | null>(null);
   const router = useRouter();
+  const readAloud = useReadAloud();
   const endRef = useRef<HTMLDivElement>(null);
 
   // Resume a saved session after a refresh.
@@ -122,6 +124,7 @@ export function ExplainChat(props: Props) {
       }
       setMessages(next);
       setPending(null);
+      readAloud.speak(res.reply);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save your message. Please try again.");
     }
@@ -218,6 +221,17 @@ export function ExplainChat(props: Props) {
       {focus && <span>Focus: {focus}</span>}
       {angle === "analogy" && <span>Angle: explain through an analogy</span>}
       <NotesInUse topic={topic} />
+      {readAloud.supported && (
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={readAloud.enabled}
+            onChange={(e) => readAloud.setEnabled(e.target.checked)}
+            className="h-4 w-4 accent-[var(--accent)]"
+          />
+          Read replies aloud
+        </label>
+      )}
     </>
   );
 
