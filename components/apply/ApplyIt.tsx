@@ -23,6 +23,7 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   const data = useAllData();
   const router = useRouter();
   const setCurrentTopic = useUI((s) => s.setCurrentTopic);
+  const currentTopic = useUI((s) => s.currentTopic);
   const [choice, setChoice] = useState<string | null>(topicParam ?? null);
   const [newName, setNewName] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -35,7 +36,10 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   });
 
   const topics = data ? [...data.topics].sort((a, b) => a.name.localeCompare(b.name)) : [];
-  const selectedId = choice ?? topics[0]?.id ?? NEW_TOPIC;
+  // Default to the topic in focus (top bar), then the most recently created one.
+  const inFocus = topics.find((t) => t.name.toLowerCase() === currentTopic.trim().toLowerCase());
+  const newest = [...topics].sort((a, b) => b.createdAt - a.createdAt)[0];
+  const selectedId = choice ?? inFocus?.id ?? newest?.id ?? NEW_TOPIC;
   const topic = topics.find((t) => t.id === selectedId);
 
   useEffect(() => {

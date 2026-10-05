@@ -15,12 +15,12 @@ export function TopBar() {
   return (
     <section
       aria-label="Current topic and streak"
-      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-line bg-surface px-4 py-3 text-sm md:px-10"
+      className="flex items-center justify-between gap-x-6 border-b border-line bg-surface px-4 py-3 text-sm md:px-10"
     >
       <p className="min-w-0 truncate text-ink-2">
         Topic: <span className="text-ink">{currentTopic || "None selected"}</span>
       </p>
-      <p className="text-ink-2">
+      <p className="shrink-0 text-ink-2">
         Streak: <span className="tnum text-ink">{streak}</span> {streak === 1 ? "day" : "days"}
       </p>
     </section>
