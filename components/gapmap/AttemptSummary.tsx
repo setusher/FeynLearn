@@ -52,7 +52,7 @@ export function AttemptSummary({ session, isNew }: { session: Session; isNew: bo
 
       {session.misconceptions && session.misconceptions.length > 0 && (
         <div className="mt-4 border-l-[3px] border-shaky bg-tint-shaky px-4 py-3 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-shaky">
+          <p className="text-xs font-semibold uppercase tracking-wide text-shaky-text">
             Misconceptions in this session
           </p>
           <ul className="mt-1 flex flex-col gap-1">

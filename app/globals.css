@@ -11,6 +11,8 @@
   --accent-hover: #172c48;
   --status-solid: #2f6b45;
   --status-shaky: #a66a00;
+  /* Darker shaky for small text on the shaky tint (5.1:1; #a66a00 is only 3.8:1 there). */
+  --status-shaky-text: #8a5800;
   --status-missing: #a63a2b;
   --tint-solid: #e3efe6;
   --tint-shaky: #f6ebd3;
@@ -27,6 +29,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-solid: var(--status-solid);
   --color-shaky: var(--status-shaky);
+  --color-shaky-text: var(--status-shaky-text);
   --color-missing: var(--status-missing);
   --color-tint-solid: var(--tint-solid);
   --color-tint-shaky: var(--tint-shaky);
@@ -75,10 +78,10 @@
 }
 
 /* React Flow: keep the map plain (no translucent attribution panel). */
-.react-flow__attribution {
-  background: transparent;
+.react-flow .react-flow__attribution {
+  background: var(--surface);
   font-size: 10px;
 }
-.react-flow__attribution a {
+.react-flow .react-flow__attribution a {
   color: var(--ink-2);
 }

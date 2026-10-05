@@ -22,7 +22,7 @@ export function FlagPanel({
 
   if (index === null) {
     return (
-      <aside className="border-t border-line pt-4 text-sm text-ink-2 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+      <aside aria-label="Flag a paragraph" className="border-t border-line pt-4 text-sm text-ink-2 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
         <p>Click a paragraph you think is wrong, then say what is wrong with it.</p>
         <p className="mt-2">
           {flagCount === 0 ? "No flags yet." : `${flagCount} ${flagCount === 1 ? "paragraph" : "paragraphs"} flagged.`}
@@ -32,7 +32,7 @@ export function FlagPanel({
   }
 
   return (
-    <aside className="border-t border-line pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+    <aside aria-label="Flag a paragraph" className="border-t border-line pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
       <form
         onSubmit={(e) => {
           e.preventDefault();

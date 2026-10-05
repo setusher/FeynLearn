@@ -3,7 +3,7 @@ import type { Message, Misconception } from "@/lib/types";
 export function MisconceptionCallout({ misconception }: { misconception: Misconception }) {
   return (
     <aside className="mt-3 border-l-[3px] border-shaky bg-tint-shaky px-4 py-3 text-[15px]">
-      <p className="text-xs font-semibold uppercase tracking-wide text-shaky">Common misconception</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-shaky-text">Common misconception</p>
       <p className="mt-1">
         <span className="font-medium">{misconception.name}.</span> {misconception.correction}
       </p>

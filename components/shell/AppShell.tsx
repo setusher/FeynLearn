@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
       {/* Desktop sidebar: a plain column in the page grid. */}
-      <aside className="hidden border-r border-line bg-surface md:flex md:min-h-screen md:flex-col">
+      <aside aria-label="Sidebar" className="hidden border-r border-line bg-surface md:flex md:min-h-screen md:flex-col">
         <div className="border-b border-line px-5 py-4">
           <Brand />
         </div>
@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile top bar. */}
-      <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 md:hidden">
+      <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 md:hidden">
         <Brand />
         <button
           type="button"
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {navOpen ? <X size={16} strokeWidth={1.5} /> : <Menu size={16} strokeWidth={1.5} />}
           Menu
         </button>
-      </div>
+      </header>
 
       {/* Mobile drawer: plain, full height, opaque. */}
       {navOpen && (

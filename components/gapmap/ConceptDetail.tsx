@@ -19,7 +19,7 @@ export function ConceptDetail({
 }) {
   if (!concept) {
     return (
-      <aside className="border-t border-line pt-4 text-sm text-ink-2 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+      <aside aria-label="Concept details" className="border-t border-line pt-4 text-sm text-ink-2 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
         Select a concept to see the evidence from your session.
       </aside>
     );
@@ -27,6 +27,7 @@ export function ConceptDetail({
   const notMentioned = concept.evidence.trim().toLowerCase() === "not mentioned";
   return (
     <aside
+      aria-label="Concept details"
       aria-live="polite"
       className="border-t border-line pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0"
     >
