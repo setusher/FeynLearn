@@ -41,7 +41,7 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
 - [x] Phase 1: shell, theme, sidebar layout, route stubs, dashboard with sample data and empty state
 - [x] Phase 2: Explain mode
 - [x] Phase 3: Analyze and Gap map
-- [ ] Phase 4: Catch the mistake
+- [x] Phase 4: Catch the mistake
 - [ ] Phase 5: Apply it, Understanding, Revisit, Notes
 - [ ] Phase 6: Voice and polish
 - [ ] Phase 7: Design audit
@@ -88,6 +88,15 @@ Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
   "All concepts" table under the map gives the same information as text for keyboard and screen
   reader users and small screens.
 - **Analyzing a session** updates the topic's score and its spaced-review schedule.
+- **Catch the mistake:** the API returns which paragraphs hold planted errors; the client keeps
+  that only in React state and IndexedDB (to resume after a refresh) and never renders it until
+  the reveal. "Missed" verdicts and false alarms are decided on the server; the model only judges
+  the reasons for flagged paragraphs. Score: caught = 1, partly = 0.5, missed = 0, averaged,
+  minus 10 per false alarm.
+- **Catch the mistake on the Gap map:** when a topic has a map, each planted error is tied to a
+  concept. A later round nudges that concept one step (a miss drops solid to shaky, a catch lifts
+  missing to shaky) and the detail panel lists the results. Explaining stays the stronger evidence.
+- **"New explanation"** replaces the unfinished round instead of keeping it.
 - **Rate limit:** 20 API requests per minute per IP, in memory.
 - **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
 

@@ -79,3 +79,58 @@ export const STATUS_LABEL: Record<ConceptStatus, string> = {
   shaky: "Shaky",
   missing: "Missing",
 };
+
+export type ReverseEvidence = {
+  conceptId: string;
+  verdict: "caught" | "partly" | "missed";
+  correctFact: string;
+  at: number;
+};
+
+/** Collect per-concept results from judged catch-the-mistake sessions, newest first. */
+export function reverseEvidence(
+  sessions: { mode: string; endedAt?: number; startedAt: number; reverse?: {
+    paragraphs: { conceptId?: string }[];
+    verdicts?: { index: number; verdict: "caught" | "partly" | "missed"; correctFact: string }[];
+  } }[],
+): ReverseEvidence[] {
+  return sessions
+    .filter((s) => s.mode === "reverse" && s.reverse?.verdicts)
+    .flatMap((s) =>
+      (s.reverse!.verdicts ?? []).flatMap((v) => {
+        const conceptId = s.reverse!.paragraphs[v.index]?.conceptId;
+        return conceptId
+          ? [{ conceptId, verdict: v.verdict, correctFact: v.correctFact, at: s.endedAt ?? s.startedAt }]
+          : [];
+      }),
+    )
+    .sort((a, b) => b.at - a.at);
+}
+
+/**
+ * Adjust map statuses with catch-the-mistake results that came after the explain
+ * attempt: a missed planted error drops "solid" to "shaky"; a caught one lifts
+ * "missing" to "shaky". Explaining stays the stronger evidence, so neither moves
+ * a concept further than one step. Returns the adjusted concepts and a note per changed id.
+ */
+export function applyReverseEvidence(
+  concepts: Concept[],
+  evidence: ReverseEvidence[],
+  after: number,
+): { concepts: Concept[]; notes: Record<string, string> } {
+  const notes: Record<string, string> = {};
+  const adjusted = concepts.map((c) => {
+    const latest = evidence.find((e) => e.conceptId === c.id && e.at > after);
+    if (!latest) return c;
+    if (latest.verdict === "missed" && c.status === "solid") {
+      notes[c.id] = "missed in Catch the mistake";
+      return { ...c, status: "shaky" as const };
+    }
+    if (latest.verdict === "caught" && c.status === "missing") {
+      notes[c.id] = "caught in Catch the mistake";
+      return { ...c, status: "shaky" as const };
+    }
+    return c;
+  });
+  return { concepts: adjusted, notes };
+}

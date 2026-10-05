@@ -9,7 +9,7 @@ import { Label, Select } from "@/components/ui/Field";
 import { PageHeader, StatusLine } from "@/components/ui/PageHeader";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
 import { formatDate } from "@/lib/format";
-import { STATUS_LABEL, findPrevious } from "@/lib/graph";
+import { STATUS_LABEL, applyReverseEvidence, findPrevious, reverseEvidence } from "@/lib/graph";
 import { useAllData } from "@/lib/hooks";
 import { isPersonaId } from "@/lib/personas";
 import { useUI } from "@/lib/store";
@@ -24,6 +24,13 @@ const ConceptGraph = dynamic(() => import("./ConceptGraph"), {
 });
 
 type View = "previous" | "current";
+
+const VERDICT_TEXT: Record<string, string> = {
+  caught: "Caught",
+  partly: "Partly caught",
+  missed: "Missed",
+  none: "-",
+};
 
 const isAnalyzed = (s: Session) => s.mode === "explain" && (s.concepts?.length ?? 0) > 0;
 const when = (s: Session) => s.endedAt ?? s.startedAt;
@@ -89,10 +96,22 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
   const current = attempts[currentIdx];
   const previous = currentIdx > 0 ? attempts[currentIdx - 1] : undefined;
   const shown = view === "previous" && previous ? previous : current;
-  const concepts = shown.concepts ?? [];
   const compareTo = shown === current ? previous?.concepts : undefined;
 
-  const changes = Object.fromEntries(concepts.map((c) => [c.id, changeText(c, compareTo)]));
+  // Catch-the-mistake results after this attempt nudge statuses (see lib/graph.ts).
+  const evidence = reverseEvidence(data.sessions.filter((s) => s.topicId === topic.id));
+  const { concepts, notes } =
+    shown === current
+      ? applyReverseEvidence(shown.concepts ?? [], evidence, when(shown))
+      : { concepts: shown.concepts ?? [], notes: {} as Record<string, string> };
+
+  const changes = Object.fromEntries(
+    concepts.map((c) => {
+      const parts = [changeText(c, compareTo), notes[c.id]].filter(Boolean);
+      return [c.id, parts.length ? parts.join("; ") : undefined];
+    }),
+  );
+  const checksFor = (id: string) => evidence.filter((e) => e.conceptId === id);
   const selected = concepts.find((c) => c.id === selectedId);
   const isNew = sessionParam === current.id && shown === current;
 
@@ -149,7 +168,12 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <ConceptGraph concepts={concepts} changes={changes} selectedId={selectedId} onSelect={setSelectedId} />
-        <ConceptDetail concept={selected} change={selected ? changes[selected.id] : undefined} practiceHref={practiceHref} />
+        <ConceptDetail
+          concept={selected}
+          change={selected ? changes[selected.id] : undefined}
+          checks={selected ? checksFor(selected.id) : []}
+          practiceHref={practiceHref}
+        />
       </div>
 
       <section aria-labelledby="concept-list" className="mt-10">
@@ -160,7 +184,8 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
               <tr className="border-b border-line text-sm text-ink-2">
                 <th scope="col" className="py-2 pr-4 font-medium">Concept</th>
                 <th scope="col" className="py-2 pr-4 font-medium">Status</th>
-                {compareTo && <th scope="col" className="py-2 font-medium">Change</th>}
+                {compareTo && <th scope="col" className="py-2 pr-4 font-medium">Change</th>}
+                {evidence.length > 0 && <th scope="col" className="py-2 font-medium">Catch the mistake</th>}
               </tr>
             </thead>
             <tbody>
@@ -177,7 +202,10 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
                     </button>
                   </td>
                   <td className="py-2.5 pr-4">{STATUS_LABEL[c.status]}</td>
-                  {compareTo && <td className="py-2.5 text-ink-2">{changes[c.id] ?? "no change"}</td>}
+                  {compareTo && <td className="py-2.5 pr-4 text-ink-2">{changeText(c, compareTo) ?? "no change"}</td>}
+                  {evidence.length > 0 && (
+                    <td className="py-2.5 text-ink-2">{VERDICT_TEXT[checksFor(c.id)[0]?.verdict ?? "none"]}</td>
+                  )}
                 </tr>
               ))}
             </tbody>

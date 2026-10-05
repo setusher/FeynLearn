@@ -116,8 +116,8 @@ export async function seedSampleData(now: number = Date.now()): Promise<void> {
         { text: "Earth orbits the Sun once a year while spinning on an axis that is tilted about 23.4 degrees.", hasError: false },
         { text: "Because the orbit is a near-perfect circle, the distance to the Sun changes by only about 3 percent.", hasError: false },
         { text: "The axis always points toward the North Star, so during part of the year the Northern Hemisphere leans toward the Sun.", hasError: false },
-        { text: "When a hemisphere leans toward the Sun, sunlight arrives at a steeper angle and its days are shorter.", hasError: true, errorNote: "Days get longer, not shorter, in the hemisphere tilted toward the Sun.", correctFact: "The hemisphere tilted toward the Sun has longer days and steeper sunlight." },
-        { text: "The summer solstice is the hottest day of the year because it has the most daylight.", hasError: true, errorNote: "Peak heat lags the solstice by several weeks.", correctFact: "The hottest weeks usually come 4-6 weeks after the solstice, because land and oceans keep storing heat." },
+        { text: "When a hemisphere leans toward the Sun, sunlight arrives at a steeper angle and its days are shorter.", hasError: true, conceptId: "day-length", errorNote: "Days get longer, not shorter, in the hemisphere tilted toward the Sun.", correctFact: "The hemisphere tilted toward the Sun has longer days and steeper sunlight." },
+        { text: "The summer solstice is the hottest day of the year because it has the most daylight.", hasError: true, conceptId: "temperature", errorNote: "Peak heat lags the solstice by several weeks.", correctFact: "The hottest weeks usually come 4-6 weeks after the solstice, because land and oceans keep storing heat." },
         { text: "At the equator, the angle of sunlight changes little, so seasons there are mild.", hasError: false },
       ],
       flags: [
