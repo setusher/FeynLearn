@@ -8,6 +8,7 @@ import { Label, Select } from "@/components/ui/Field";
 import { ErrorLine, StatusLine } from "@/components/ui/PageHeader";
 import { ApiError, postJson } from "@/lib/client";
 import { db } from "@/lib/db";
+import { notesExcerptFor } from "@/lib/noteStore";
 import { PERSONAS, isPersonaId, type PersonaId } from "@/lib/personas";
 import { openingLine } from "@/lib/prompts";
 import type { AnalyzeRequest, AnalyzeResponse, ChatRequest, ChatResponse } from "@/lib/schemas";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/sessions";
 import type { Message } from "@/lib/types";
 import { Composer } from "./Composer";
+import { NotesInUse } from "./NotesInUse";
 import { SessionHeader } from "./SessionHeader";
 import { Transcript } from "./Transcript";
 
@@ -101,6 +103,7 @@ export function ExplainChat(props: Props) {
         persona,
         focus,
         angle,
+        notesExcerpt: await notesExcerptFor(topic, focus),
         history: messages.slice(-40).map(({ role, text: t }) => ({ role, text: t })),
         userMessage: text,
       };
@@ -145,6 +148,7 @@ export function ExplainChat(props: Props) {
       const body: AnalyzeRequest = {
         topic,
         focus,
+        notesExcerpt: await notesExcerptFor(topic, focus),
         transcript: session.messages.slice(-42).map(({ role, text }) => ({ role, text })),
         previousConcepts: previous?.concepts?.map(({ id, label }) => ({ id, label })),
       };
@@ -213,6 +217,7 @@ export function ExplainChat(props: Props) {
       )}
       {focus && <span>Focus: {focus}</span>}
       {angle === "analogy" && <span>Angle: explain through an analogy</span>}
+      <NotesInUse topic={topic} />
     </>
   );
 

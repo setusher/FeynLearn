@@ -79,7 +79,10 @@ export function StartSession({ hasNotes }: { hasNotes: boolean }) {
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" variant="primary">Begin session</Button>
           {hasNotes && (
-            <Link href="/notes" className="text-sm underline underline-offset-2">
+            <Link
+              href={currentTopic.trim() ? `/notes?topic=${encodeURIComponent(currentTopic.trim())}` : "/notes"}
+              className="text-sm underline underline-offset-2"
+            >
               Use my notes for this topic
             </Link>
           )}

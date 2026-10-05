@@ -8,6 +8,7 @@ import { ErrorLine, PageHeader, StatusLine } from "@/components/ui/PageHeader";
 import { createChallenge, deleteChallenge, rubricTotal, saveDraftAnswer, saveGrade } from "@/lib/challenges";
 import { ApiError, postJson } from "@/lib/client";
 import { formatDate } from "@/lib/format";
+import { notesExcerptFor } from "@/lib/noteStore";
 import { useAllData } from "@/lib/hooks";
 import type { ChallengeGenerateResponse, ChallengeGradeResponse, ChallengeRequest } from "@/lib/schemas";
 import { useUI } from "@/lib/store";
@@ -59,6 +60,7 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
         action: "generate",
         topic: topicName,
         focus,
+        notesExcerpt: await notesExcerptFor(topicName, focus),
         avoid: challenges.slice(0, 5).map((c) => c.scenario),
       };
       const res = await postJson<ChallengeGenerateResponse>("/api/challenge", body);
@@ -81,7 +83,13 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
     setBusy("grading");
     try {
       await saveDraftAnswer(challenge.id, text);
-      const body: ChallengeRequest = { action: "grade", topic: topicName, scenario: challenge.scenario, answer: text };
+      const body: ChallengeRequest = {
+        action: "grade",
+        topic: topicName,
+        scenario: challenge.scenario,
+        answer: text,
+        notesExcerpt: await notesExcerptFor(topicName),
+      };
       const res = await postJson<ChallengeGradeResponse>("/api/challenge", body);
       await saveGrade(challenge.id, { answer: text, rubric: res.rubric, modelAnswer: res.modelAnswer });
       setAnswer(null);

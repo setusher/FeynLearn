@@ -1,9 +1,7 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { Notes } from "@/components/notes/Notes";
 
-export default function NotesPage() {
-  return (
-    <div className="max-w-[960px]">
-      <PageHeader title="Notes" intro="Upload class notes so the AI judges your explanations against them. Coming in phase 5." />
-    </div>
-  );
+export default async function NotesPage({ searchParams }: PageProps<"/notes">) {
+  const params = await searchParams;
+  const topic = typeof params.topic === "string" ? params.topic.trim().slice(0, 200) : undefined;
+  return <Notes forTopic={topic || undefined} />;
 }

@@ -7,6 +7,7 @@ import { Label, Select } from "@/components/ui/Field";
 import { ErrorLine, StatusLine } from "@/components/ui/PageHeader";
 import { ApiError, postJson } from "@/lib/client";
 import { db } from "@/lib/db";
+import { notesExcerptFor } from "@/lib/noteStore";
 import type { ReverseGenerateResponse, ReverseJudgeResponse, ReverseRequest } from "@/lib/schemas";
 import {
   discardSession,
@@ -18,6 +19,7 @@ import {
 import type { Difficulty, ReverseResult } from "@/lib/types";
 import type { ProgressInfo } from "./ExplainChat";
 import { FlagPanel } from "./FlagPanel";
+import { NotesInUse } from "./NotesInUse";
 import { ReverseResults } from "./ReverseResults";
 import { SessionHeader } from "./SessionHeader";
 
@@ -88,6 +90,7 @@ export function ReverseMode({ topic, sid, toggle, banner, onSessionCreated, onPr
         action: "generate",
         topic,
         difficulty,
+        notesExcerpt: await notesExcerptFor(topic),
         concepts: map?.concepts?.map(({ id, label }) => ({ id, label })),
       };
       const res = await postJson<ReverseGenerateResponse>("/api/reverse", body);
@@ -172,7 +175,10 @@ export function ReverseMode({ topic, sid, toggle, banner, onSessionCreated, onPr
         </Select>
       </div>
     ) : (
-      <span>Difficulty: {DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)?.label}</span>
+      <>
+        <span>Difficulty: {DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)?.label}</span>
+        <NotesInUse topic={topic} />
+      </>
     );
 
   return (
