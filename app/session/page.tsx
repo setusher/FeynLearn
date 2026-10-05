@@ -31,6 +31,7 @@ export default async function SessionPage({ searchParams }: PageProps<"/session"
       persona={isPersonaId(persona) ? persona : "child"}
       sid={param(params.sid)}
       focus={param(params.focus)?.slice(0, LIMITS.topic)}
+      angle={param(params.angle) === "analogy" ? "analogy" : undefined}
     />
   );
 }

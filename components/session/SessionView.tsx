@@ -11,7 +11,7 @@ import type { Mode } from "@/lib/types";
 import { ExplainChat, type ProgressInfo } from "./ExplainChat";
 import { ReverseMode } from "./ReverseMode";
 
-type Props = { topic: string; mode: Mode; persona: PersonaId; sid?: string; focus?: string };
+type Props = { topic: string; mode: Mode; persona: PersonaId; sid?: string; focus?: string; angle?: "analogy" };
 
 /** Keep the URL in step with the session without re-rendering the server page. */
 function syncUrl(params: Record<string, string | undefined>) {
@@ -21,7 +21,7 @@ function syncUrl(params: Record<string, string | undefined>) {
 }
 
 export function SessionView(props: Props) {
-  const { topic, focus } = props;
+  const { topic, focus, angle } = props;
   const setCurrentTopic = useUI((s) => s.setCurrentTopic);
   const [mode, setMode] = useState<Mode>(props.mode);
   const [persona, setPersona] = useState<PersonaId>(props.persona);
@@ -89,13 +89,14 @@ export function SessionView(props: Props) {
       persona={persona}
       sid={sid}
       focus={focus}
+      angle={angle}
       toggle={toggle}
       banner={banner}
       onPersonaChange={(p) => {
         setPersona(p);
-        syncUrl({ topic, mode, persona: p, focus });
+        syncUrl({ topic, mode, persona: p, focus, angle });
       }}
-      onSessionCreated={(id) => syncUrl({ topic, mode, persona, focus, sid: id })}
+      onSessionCreated={(id) => syncUrl({ topic, mode, persona, focus, angle, sid: id })}
       onProgress={onProgress}
     />
   );

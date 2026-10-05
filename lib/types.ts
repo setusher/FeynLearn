@@ -74,6 +74,8 @@ export type Session = {
   accuracy?: number;
   /** Optional concept the session was focused on (from the Gap map). */
   focus?: string;
+  /** Revisit angle for explain sessions: explain through an analogy. */
+  angle?: "analogy";
 };
 
 export type RubricItem = { criterion: string; score: 0 | 1 | 2; feedback: string };

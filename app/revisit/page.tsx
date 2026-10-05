@@ -1,9 +1,6 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { Revisit } from "@/components/revisit/Revisit";
 
-export default function RevisitPage() {
-  return (
-    <div className="max-w-[960px]">
-      <PageHeader title="Revisit" intro="Topics come back on a spaced schedule, each time from a different angle. Coming in phase 5." />
-    </div>
-  );
+export default async function RevisitPage({ searchParams }: PageProps<"/revisit">) {
+  const params = await searchParams;
+  return <Revisit highlight={typeof params.topic === "string" ? params.topic : undefined} />;
 }

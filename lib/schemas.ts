@@ -18,6 +18,7 @@ export const ChatRequestSchema = z.object({
   persona: z.enum(personaIds),
   notesExcerpt: z.string().max(LIMITS.notes).optional(),
   focus: z.string().max(LIMITS.topic).optional(),
+  angle: z.enum(["analogy"]).optional(),
   history: z
     .array(z.object({ role: z.enum(["user", "ai"]), text: z.string().max(LIMITS.message) }))
     .max(LIMITS.history),

@@ -29,6 +29,7 @@ export async function POST(req: Request) {
         topic: body.topic,
         turn,
         focus: body.focus,
+        angle: body.angle,
         notesExcerpt: body.notesExcerpt,
       }),
       messages,

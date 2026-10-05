@@ -31,6 +31,7 @@ type Props = {
   persona: PersonaId;
   sid?: string;
   focus?: string;
+  angle?: "analogy";
   toggle: ReactNode;
   banner?: ReactNode;
   onPersonaChange: (persona: PersonaId) => void;
@@ -44,10 +45,11 @@ const SOFT_TURN_LIMIT = 8;
 
 export function ExplainChat(props: Props) {
   const { topic, sid, focus, toggle, banner, onPersonaChange, onSessionCreated, onProgress } = props;
+  const [angle, setAngle] = useState(props.angle);
   const [persona, setPersona] = useState<PersonaId>(props.persona);
   const [sessionId, setSessionId] = useState<string | null>(sid ?? null);
   const [messages, setMessages] = useState<Message[]>(() =>
-    sid ? [] : [{ role: "ai", text: openingLine(props.persona, topic) }],
+    sid ? [] : [{ role: "ai", text: openingLine(props.persona, topic, props.angle) }],
   );
   const [phase, setPhase] = useState<Phase>(sid ? "loading" : "active");
   const [pending, setPending] = useState<string | null>(null);
@@ -69,6 +71,7 @@ export function ExplainChat(props: Props) {
         return;
       }
       setMessages(s.messages);
+      setAngle(s.angle);
       setTopicId(s.concepts?.length ? s.topicId : null);
       if (isPersonaId(s.persona)) setPersona(s.persona);
       setPhase(s.endedAt ? "ended" : "active");
@@ -97,6 +100,7 @@ export function ExplainChat(props: Props) {
         topic,
         persona,
         focus,
+        angle,
         history: messages.slice(-40).map(({ role, text: t }) => ({ role, text: t })),
         userMessage: text,
       };
@@ -109,7 +113,7 @@ export function ExplainChat(props: Props) {
       if (sessionId) {
         await saveMessages(sessionId, next);
       } else {
-        const created = await startSession({ topicName: topic, mode: "explain", persona, focus, messages: next });
+        const created = await startSession({ topicName: topic, mode: "explain", persona, focus, angle, messages: next });
         setSessionId(created.id);
         onSessionCreated(created.id);
       }
@@ -195,7 +199,7 @@ export function ExplainChat(props: Props) {
             onChange={(e) => {
               const p = e.target.value as PersonaId;
               setPersona(p);
-              setMessages([{ role: "ai", text: openingLine(p, topic) }]);
+              setMessages([{ role: "ai", text: openingLine(p, topic, angle) }]);
               onPersonaChange(p);
             }}
           >
@@ -208,6 +212,7 @@ export function ExplainChat(props: Props) {
         <span>Explaining to: {PERSONAS.find((p) => p.id === persona)?.label}</span>
       )}
       {focus && <span>Focus: {focus}</span>}
+      {angle === "analogy" && <span>Angle: explain through an analogy</span>}
     </>
   );
 

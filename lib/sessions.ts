@@ -11,6 +11,7 @@ export async function startSession(args: {
   mode: Mode;
   persona?: string;
   focus?: string;
+  angle?: "analogy";
   messages: Message[];
   reverse?: ReverseResult;
 }): Promise<Session> {
@@ -21,6 +22,7 @@ export async function startSession(args: {
     mode: args.mode,
     persona: args.persona,
     focus: args.focus,
+    ...(args.angle ? { angle: args.angle } : {}),
     startedAt: Date.now(),
     messages: args.messages,
     ...(args.reverse ? { reverse: args.reverse } : {}),

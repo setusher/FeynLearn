@@ -17,8 +17,11 @@ function asSentence(topic: string): string {
 }
 
 /** The learner's first line, shown before any API call. */
-export function openingLine(persona: PersonaId, topic: string): string {
+export function openingLine(persona: PersonaId, topic: string, angle?: "analogy"): string {
   const t = asSentence(topic);
+  if (angle === "analogy") {
+    return `${t} Can you explain it to me with an analogy, something from everyday life?`;
+  }
   switch (persona) {
     case "child":
       return `I don't know anything about this yet: ${t} Can you explain it to me?`;
@@ -46,9 +49,10 @@ export function explainInstructions(args: {
   topic: string;
   turn: number;
   focus?: string;
+  angle?: "analogy";
   notesExcerpt?: string;
 }): string {
-  const { persona, topic, turn, focus, notesExcerpt } = args;
+  const { persona, topic, turn, focus, angle, notesExcerpt } = args;
   return `You are ${PERSONA_VOICE[persona]} (persona: "${personaLabel(persona)}").
 A student is teaching you about: "${topic}". You know nothing about it. Your job is to make them explain it clearly, the way the Feynman technique works.
 
@@ -59,7 +63,11 @@ Rules:
 - Build on what they just said. Do not change the subject.
 - Stay in character at all times. No praise like "Great job!", no emoji.
 - If the student's latest message states something factually wrong, still reply in character (for example, ask a question that exposes the problem), and set "misconception" with a short name and a one-sentence correction. Otherwise set "misconception" to null. Do not flag vagueness or omissions as misconceptions, only false statements.
-${focus ? `- The student wants to concentrate on this part of the topic: "${focus}". Steer your questions toward it.\n` : ""}- This is student turn ${turn}. ${
+${focus ? `- The student wants to concentrate on this part of the topic: "${focus}". Steer your questions toward it.\n` : ""}${
+    angle === "analogy"
+      ? "- The student must explain through an analogy. Ask for one if they have not given it, then probe where the analogy matches the real thing and where it breaks down.\n"
+      : ""
+  }- This is student turn ${turn}. ${
     turn >= 8
       ? "You have asked enough. Say in character that you think you understand now, and invite them to end the session. Do not ask another question."
       : "Keep probing."
