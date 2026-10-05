@@ -2,7 +2,7 @@ import { db, getOrCreateTopic, newId } from "./db";
 import type { AnalyzeResponse } from "./schemas";
 import { topicScore } from "./score";
 import { schedule } from "./sm2";
-import type { Message, Mode, Session } from "./types";
+import type { Message, Mode, ReverseResult, Session } from "./types";
 
 // Persistence helpers for sessions. A session record is created on the first
 // student message, so opening and leaving the page does not leave empty records.
@@ -13,6 +13,7 @@ export async function startSession(args: {
   persona?: string;
   focus?: string;
   messages: Message[];
+  reverse?: ReverseResult;
 }): Promise<Session> {
   const topic = await getOrCreateTopic(args.topicName);
   const session: Session = {
@@ -23,6 +24,7 @@ export async function startSession(args: {
     focus: args.focus,
     startedAt: Date.now(),
     messages: args.messages,
+    ...(args.reverse ? { reverse: args.reverse } : {}),
   };
   await db.sessions.add(session);
   return session;
@@ -59,32 +61,17 @@ export async function previousAnalysis(topicId: string, excludeId?: string): Pro
 }
 
 /**
- * Store an analysis on a session, end it, and update the topic's score and
- * review schedule. Returns the topic id for navigation.
+ * Save a finished session, recompute its score snapshot, and update the topic's
+ * score and review schedule. Returns the topic id.
  */
-export async function saveAnalysis(
-  sessionId: string,
-  analysis: AnalyzeResponse,
-  now: number = Date.now(),
-): Promise<string> {
+async function finishAndScore(updated: Session, now: number): Promise<string> {
   return db.transaction("rw", [db.sessions, db.topics, db.challenges], async () => {
-    const session = await db.sessions.get(sessionId);
-    if (!session) throw new Error("Session not found");
-    const updated: Session = {
-      ...session,
-      endedAt: session.endedAt ?? now,
-      concepts: analysis.concepts,
-      misconceptions: analysis.misconceptions,
-      summary: analysis.summary,
-      coverage: analysis.scores.coverage,
-      accuracy: analysis.scores.accuracy,
-    };
     const [sessions, challenges, topic] = await Promise.all([
-      db.sessions.where("topicId").equals(session.topicId).toArray(),
-      db.challenges.where("topicId").equals(session.topicId).toArray(),
-      db.topics.get(session.topicId),
+      db.sessions.where("topicId").equals(updated.topicId).toArray(),
+      db.challenges.where("topicId").equals(updated.topicId).toArray(),
+      db.topics.get(updated.topicId),
     ]);
-    const all = sessions.map((s) => (s.id === sessionId ? updated : s));
+    const all = sessions.map((s) => (s.id === updated.id ? updated : s));
     updated.score = topicScore(all, challenges) ?? undefined;
     await db.sessions.put(updated);
 
@@ -92,6 +79,43 @@ export async function saveAnalysis(
       const next = schedule(topic, updated.score, now);
       await db.topics.update(topic.id, { ...next, latestScore: updated.score });
     }
-    return session.topicId;
+    return updated.topicId;
   });
+}
+
+/** Store an analysis on an explain session and end it. */
+export async function saveAnalysis(
+  sessionId: string,
+  analysis: AnalyzeResponse,
+  now: number = Date.now(),
+): Promise<string> {
+  const session = await db.sessions.get(sessionId);
+  if (!session) throw new Error("Session not found");
+  return finishAndScore(
+    {
+      ...session,
+      endedAt: session.endedAt ?? now,
+      concepts: analysis.concepts,
+      misconceptions: analysis.misconceptions,
+      summary: analysis.summary,
+      coverage: analysis.scores.coverage,
+      accuracy: analysis.scores.accuracy,
+    },
+    now,
+  );
+}
+
+/** Store judged results on a catch-the-mistake session and end it. */
+export async function saveReverseResult(
+  sessionId: string,
+  reverse: ReverseResult,
+  now: number = Date.now(),
+): Promise<string> {
+  const session = await db.sessions.get(sessionId);
+  if (!session) throw new Error("Session not found");
+  return finishAndScore({ ...session, endedAt: now, reverse }, now);
+}
+
+export async function saveReverseProgress(sessionId: string, reverse: ReverseResult): Promise<void> {
+  await db.sessions.update(sessionId, { reverse });
 }

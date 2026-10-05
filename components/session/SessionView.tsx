@@ -9,7 +9,7 @@ import { endSession } from "@/lib/sessions";
 import { useUI } from "@/lib/store";
 import type { Mode } from "@/lib/types";
 import { ExplainChat, type ProgressInfo } from "./ExplainChat";
-import { SessionHeader } from "./SessionHeader";
+import { ReverseMode } from "./ReverseMode";
 
 type Props = { topic: string; mode: Mode; persona: PersonaId; sid?: string; focus?: string };
 
@@ -62,7 +62,7 @@ export function SessionView(props: Props) {
 
   const banner = pendingMode && (
     <div role="alert" className="mb-6 flex flex-wrap items-center gap-3 border border-line bg-surface px-4 py-3 text-sm">
-      <span>Switching modes starts a fresh session. Your conversation so far is kept as an unfinished session.</span>
+      <span>Switching modes starts a fresh session. Your current one is kept as unfinished.</span>
       <Button onClick={confirmSwitch}>Switch mode</Button>
       <Button variant="secondary" onClick={() => setPendingMode(null)}>Stay here</Button>
     </div>
@@ -70,13 +70,15 @@ export function SessionView(props: Props) {
 
   if (mode === "reverse") {
     return (
-      <div className="max-w-[720px]">
-        <SessionHeader topic={topic} toggle={toggle} />
-        <p className="text-ink-2">
-          In this mode you read a short explanation with planted mistakes and try to catch them.
-          It arrives in build phase 4.
-        </p>
-      </div>
+      <ReverseMode
+        key={run}
+        topic={topic}
+        sid={sid}
+        toggle={toggle}
+        banner={banner}
+        onSessionCreated={(id) => syncUrl({ topic, mode, focus, sid: id })}
+        onProgress={onProgress}
+      />
     );
   }
 
