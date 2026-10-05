@@ -163,3 +163,54 @@ export type ReverseJudgeResponse = {
   falseAlarms: { index: number; note: string }[];
   score: number;
 };
+
+// ---- /api/challenge ----
+
+export const RUBRIC_CRITERIA = [
+  "Uses the concept correctly",
+  "Reasoning is sound",
+  "Considers limits or edge cases",
+] as const;
+
+export const ChallengeRequestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("generate"),
+    topic: z.string().trim().min(1).max(LIMITS.topic),
+    notesExcerpt: z.string().max(LIMITS.notes).optional(),
+    /** Earlier scenarios for this topic, so a new one is different. */
+    avoid: z.array(z.string().max(1500)).max(5).optional(),
+    focus: z.string().max(LIMITS.topic).optional(),
+  }),
+  z.object({
+    action: z.literal("grade"),
+    topic: z.string().trim().min(1).max(LIMITS.topic),
+    scenario: z.string().min(1).max(1500),
+    answer: z.string().trim().min(1).max(4000),
+    notesExcerpt: z.string().max(LIMITS.notes).optional(),
+  }),
+]);
+export type ChallengeRequest = z.infer<typeof ChallengeRequestSchema>;
+
+export const ChallengeScenarioSchema = z.object({
+  scenario: z
+    .string()
+    .describe("3-6 sentences, a concrete real-world situation with names and numbers, ending with a question"),
+});
+export type ChallengeGenerateResponse = z.infer<typeof ChallengeScenarioSchema>;
+
+export const ChallengeGradeSchema = z.object({
+  rubric: z
+    .array(
+      z.object({
+        criterion: z.enum(RUBRIC_CRITERIA),
+        score: z.number().int().min(0).max(2),
+        feedback: z.string().describe("One sentence of specific feedback, addressed as 'you'"),
+      }),
+    )
+    .length(3),
+  modelAnswer: z.string().describe("A short model answer sketch, 3-5 sentences"),
+});
+export type ChallengeGradeResponse = {
+  rubric: { criterion: string; score: 0 | 1 | 2; feedback: string }[];
+  modelAnswer: string;
+};

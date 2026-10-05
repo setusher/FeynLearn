@@ -134,3 +134,29 @@ For each flagged paragraph that contains a planted error, give a verdict:
 Write a one-sentence judgement of the student's reasoning, addressed as "you". Be fair and specific, no praise words.
 For each flagged paragraph that has no planted error, add a falseAlarms entry with one sentence explaining why that paragraph is correct.`;
 }
+
+export function challengeGenerateInstructions(args: {
+  topic: string;
+  notesExcerpt?: string;
+  avoid?: string[];
+  focus?: string;
+}): string {
+  const { topic, notesExcerpt, avoid, focus } = args;
+  return `Write one "apply it" challenge for a student who has studied "${topic}".
+The scenario is a realistic situation (3-6 sentences) where the student must use the concept to explain, predict or decide something.
+- Be concrete: named people or places, specific numbers, a real setting. Not generic, not a textbook question.
+- End with one clear question. Do not include the answer or hints.
+- It should require reasoning, not recall of a definition.${focus ? `\n- Center it on this part of the topic: "${focus}".` : ""}${
+    avoid?.length ? `\nMake it clearly different from these earlier scenarios:\n${avoid.map((a) => `- ${a.slice(0, 300)}`).join("\n")}` : ""
+  }${notesBlock(notesExcerpt)}`;
+}
+
+export function challengeGradeInstructions(topic: string, notesExcerpt?: string): string {
+  return `You are grading a student's answer to an "apply it" scenario about "${topic}".
+Score each criterion 0, 1 or 2:
+- "Uses the concept correctly": 2 = the right concept applied accurately; 1 = partly right or imprecise; 0 = wrong or missing.
+- "Reasoning is sound": 2 = clear cause-and-effect steps leading to the answer; 1 = some gaps or jumps; 0 = no real reasoning.
+- "Considers limits or edge cases": 2 = notes a relevant limit, assumption or exception; 1 = hints at one; 0 = none.
+Give one sentence of specific feedback per criterion, addressed as "you". Be fair and strict, no praise words, no exclamation marks.
+Then write a short model answer sketch (3-5 sentences).${notesBlock(notesExcerpt)}`;
+}
