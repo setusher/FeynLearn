@@ -96,3 +96,41 @@ List each factual error the student made under misconceptions (name plus one-sen
 accuracy: 0-100 for how factually correct the student's statements were (100 = nothing false).
 summary: 2-3 plain sentences to the student ("you"), naming what was strong and the most important gap. No praise words like "great", no exclamation marks.${focus ? `\nThe student was concentrating on: "${focus}".` : ""}${previous}${notesBlock(notesExcerpt)}`;
 }
+
+const DIFFICULTY_GUIDE: Record<string, string> = {
+  obvious: "Errors are clear to anyone who has studied the topic briefly (for example a reversed cause and effect or a wrong basic fact).",
+  moderate: "Errors are plausible and match common student misconceptions; a student with a working understanding should spot them.",
+  subtle: "Errors are subtle: a precise detail, a wrong mechanism, or an overstatement. They must still be unambiguous once spotted.",
+};
+
+export function reverseGenerateInstructions(args: {
+  topic: string;
+  difficulty: string;
+  notesExcerpt?: string;
+  concepts?: { id: string; label: string }[];
+}): string {
+  const { topic, difficulty, notesExcerpt, concepts } = args;
+  return `Write a short explanation of "${topic}" for a student, as 5 to 7 numbered paragraphs (2-4 sentences each), in a plain textbook voice.
+
+Plant between 1 and 3 factual errors (choose the number yourself), each in a different paragraph, tied to common misconceptions about the topic. Difficulty: ${difficulty}. ${DIFFICULTY_GUIDE[difficulty] ?? ""}
+All other paragraphs must be fully correct.
+Each error must be wrong in a way that is unambiguous once spotted. Never hint at errors:
+- State every error confidently, as if it were true, in the same voice as the correct paragraphs.
+- No meta text such as "(this is wrong)", and never frame an error as a belief or myth ("many people think", "supposedly", "mistakenly", "it is a myth that").
+- The explanation must read as one consistent account. Correct paragraphs must not contradict, correct, or point at the errors (no "the true cause is", "in fact", "actually").
+For each paragraph set hasError. For paragraphs with an error, set errorNote (what is wrong) and correctFact (the correct statement in one sentence).${
+    concepts?.length
+      ? `\nFor each error, set conceptId to the id of the related concept from this list:\n${concepts.map((c) => `- ${c.id}: ${c.label}`).join("\n")}`
+      : ""
+  }${notesBlock(notesExcerpt)}`;
+}
+
+export function reverseJudgeInstructions(topic: string): string {
+  return `You are grading a "catch the mistake" exercise about "${topic}". The student read an explanation with planted errors and flagged paragraphs they believed were wrong, giving a reason for each.
+
+For each flagged paragraph that contains a planted error, give a verdict:
+- "caught": the reason identifies what is actually wrong.
+- "partly": the right paragraph, but the reason is vague, incomplete, or points at the wrong part.
+Write a one-sentence judgement of the student's reasoning, addressed as "you". Be fair and specific, no praise words.
+For each flagged paragraph that has no planted error, add a falseAlarms entry with one sentence explaining why that paragraph is correct.`;
+}

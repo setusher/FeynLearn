@@ -40,6 +40,8 @@ export type ReverseParagraph = {
   hasError: boolean;
   errorNote?: string;
   correctFact?: string;
+  /** Gap map concept this planted error relates to, when the topic has a map. */
+  conceptId?: string;
 };
 
 export type Verdict = "caught" | "partly" | "missed";

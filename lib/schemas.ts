@@ -88,3 +88,78 @@ export type AnalyzeResponse = {
   summary: string;
   scores: { coverage: number; accuracy: number };
 };
+
+// ---- /api/reverse ----
+
+export const DIFFICULTIES = ["obvious", "moderate", "subtle"] as const;
+
+const ParagraphSchema = z.object({
+  text: z.string().max(1500),
+  hasError: z.boolean(),
+  errorNote: z.string().max(600).optional(),
+  correctFact: z.string().max(600).optional(),
+  conceptId: z.string().max(60).optional(),
+});
+
+export const ReverseRequestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("generate"),
+    topic: z.string().trim().min(1).max(LIMITS.topic),
+    difficulty: z.enum(DIFFICULTIES),
+    notesExcerpt: z.string().max(LIMITS.notes).optional(),
+    concepts: z
+      .array(z.object({ id: z.string().max(60), label: z.string().max(120) }))
+      .max(8)
+      .optional(),
+  }),
+  z.object({
+    action: z.literal("judge"),
+    topic: z.string().trim().min(1).max(LIMITS.topic),
+    paragraphs: z.array(ParagraphSchema).min(1).max(8),
+    flags: z.array(z.object({ index: z.number().int().min(0).max(7), reason: z.string().max(1000) })).max(8),
+  }),
+]);
+export type ReverseRequest = z.infer<typeof ReverseRequestSchema>;
+
+export const ReverseGenerateModelSchema = z
+  .object({
+    paragraphs: z
+      .array(
+        z.object({
+          text: z.string().describe("One paragraph of 2-4 sentences. No meta text about errors."),
+          hasError: z.boolean().describe("True if this paragraph contains a planted error"),
+          errorNote: z.string().optional().describe("If hasError: what exactly is wrong"),
+          correctFact: z.string().optional().describe("If hasError: the correct statement, one sentence"),
+          conceptId: z.string().optional().describe("If hasError and concepts were given: the related concept id"),
+        }),
+      )
+      .min(5)
+      .max(7),
+  })
+  .refine((v) => {
+    const errors = v.paragraphs.filter((p) => p.hasError).length;
+    return errors >= 1 && errors <= 3;
+  }, "Explanation must contain 1 to 3 planted errors");
+export type ReverseGenerateResponse = { paragraphs: z.infer<typeof ParagraphSchema>[] };
+
+export const ReverseJudgeModelSchema = z.object({
+  verdicts: z.array(
+    z.object({
+      index: z.number().int().describe("Paragraph index (0-based) of a planted error the student flagged"),
+      verdict: z.enum(["caught", "partly"]).describe("caught: reason identifies the error; partly: right paragraph, vague or partly wrong reason"),
+      judgement: z.string().describe("One sentence on the student's reasoning, addressed as 'you'"),
+    }),
+  ),
+  falseAlarms: z.array(
+    z.object({
+      index: z.number().int().describe("Paragraph index (0-based) the student flagged that had no planted error"),
+      note: z.string().describe("One sentence on why this paragraph is actually correct"),
+    }),
+  ),
+});
+
+export type ReverseJudgeResponse = {
+  verdicts: { index: number; verdict: "caught" | "partly" | "missed"; correctFact: string; judgement: string }[];
+  falseAlarms: { index: number; note: string }[];
+  score: number;
+};
