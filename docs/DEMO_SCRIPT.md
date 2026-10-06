@@ -60,8 +60,9 @@ material. Only a short excerpt is sent; the notes stay in the browser."
 
 **Do:**
 
-1. Go to **Dashboard**. In the Session box header switch the mode to **Catch the mistake**, difficulty
-   **Moderate**. Topic `Why do seasons happen?`. Press **Begin session**.
+1. Go to **Dashboard**. The Session box still shows your Explain result: press **New session** in its header.
+   Then switch the mode toggle to **Catch the mistake**, choose difficulty **Moderate**, type the topic
+   `Why do seasons happen?` and press **Begin session**. The explanation is written straight away.
 2. Read the paragraphs. Click the one that is wrong (usually it blames the distance to the Sun, reverses day
    length, or puts the hottest day on the solstice).
 3. In "What's wrong with this?" type the correct fact, for example
@@ -85,7 +86,8 @@ hidden until I reveal."
 
 ## 2:50-3:00 Close
 
-**Screen:** Revisit (the topic is scheduled with the next angle, for example "explain it through an analogy").
+**Screen:** the **Dashboard**. The Revisit box lists when each topic comes back and, on its first line, the
+angle for the next revisit (for example "Next: explain it through an analogy from everyday life").
 
 **Say:** "FeynLearn: explain it, see your gaps, catch the mistakes, apply it, and come back from a new angle.
 Learn it by teaching it."
