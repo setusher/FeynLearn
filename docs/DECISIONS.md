@@ -156,3 +156,13 @@ UI rebuild decisions:
 - **Demo data** has two notes: the compound-interest note is linked; the seasons note is not, so linking a note
   can be shown live.
 - **Screenshots** in `docs/screenshots/` come from `scripts/capture-screenshots.mjs` against the running app.
+
+## Final verification (UI rebuild)
+
+- `npm run build`, `npm run lint` and `npm test` (40 tests) pass.
+- axe-core (WCAG 2 A/AA and best practices) reports no violations on any page at 1440, 1024 and 390 pixels wide.
+- The dashboard, Session, Understanding, Apply it, Revisit, Notes and Settings pages fit 1440x900 without page
+  scroll; the welcome page fits 1440x900 and 1920x1080.
+- A live end-to-end run from a fresh browser profile passed every definition-of-done step: welcome screen, full
+  dashboard, notes upload used by the AI, Explain with a misconception flag, analysis and gap map update, Catch the
+  mistake reveal, a graded Apply it challenge, a changed understanding score and the topic in Revisit.
