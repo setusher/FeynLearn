@@ -150,7 +150,7 @@ export function Understanding() {
 
       <Box id="formula" title="How is this calculated?" className="desk:col-span-4 desk:row-span-2" bodyClassName="gap-3 overflow-y-auto">
         <p className="text-[13px] text-text-2">Each topic gets a score from 0 to 100, made of four weighted parts:</p>
-        <div className="flex h-3 gap-[2px] overflow-hidden rounded-full" role="img" aria-label="Weights: coverage 40%, accuracy 25%, application 20%, spot-the-error 15%">
+        <div className="flex h-3 gap-[2px] overflow-hidden rounded-[3px]" role="img" aria-label="Weights: coverage 40%, accuracy 25%, application 20%, spot-the-error 15%">
           {PART_KEYS.map((k) => (
             <span key={k} style={{ width: `${WEIGHTS[k] * 100}%`, background: PART_COLOR[k] }} />
           ))}
