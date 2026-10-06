@@ -25,8 +25,8 @@ function ChartTooltip({ active, payload }: TooltipContentProps<ValueType, string
   if (!active || !payload?.length) return null;
   const p = payload[0].payload as HistoryPoint;
   return (
-    <div className="rounded-sm border border-line bg-surface px-3 py-2 text-sm">
-      <p className="tnum text-ink-2">{formatDate(p.at)}</p>
+    <div className="rounded-[10px] border border-line bg-card-2 px-3 py-2 text-[13px] text-text">
+      <p className="tnum text-text-2">{formatDate(p.at)}</p>
       <p>
         <span className="tnum font-medium">{p.score}</span> after {p.activity.toLowerCase()}
       </p>
@@ -37,8 +37,8 @@ function ChartTooltip({ active, payload }: TooltipContentProps<ValueType, string
 export default function ScoreChart({ points, label }: { points: HistoryPoint[]; label: string }) {
   const data = points.map((p, i) => ({ ...p, i }));
   return (
-    <figure aria-label={`Understanding score over time for ${label}`}>
-      <div className="h-[280px] w-full">
+    <figure aria-label={`Understanding score over time for ${label}`} className="flex h-full min-h-0 flex-col">
+      <div className="min-h-[200px] w-full flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 12, right: 24, bottom: 4, left: -12 }}>
             <CartesianGrid vertical={false} stroke={LINE} strokeWidth={1} />
@@ -75,7 +75,7 @@ export default function ScoreChart({ points, label }: { points: HistoryPoint[]; 
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <figcaption className="mt-2 text-sm text-ink-2">
+      <figcaption className="mt-2 shrink-0 text-[12px] text-text-2">
         Each point is the score right after a finished activity. Hover a point for details.
       </figcaption>
     </figure>
