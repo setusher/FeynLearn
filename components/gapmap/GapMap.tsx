@@ -4,23 +4,24 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Box } from "@/components/ui/Box";
 import { buttonClass } from "@/components/ui/Button";
-import { Label, Select } from "@/components/ui/Field";
-import { PageHeader, StatusLine } from "@/components/ui/PageHeader";
+import { StatusMark } from "@/components/ui/Chip";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
+import { Working } from "@/components/ui/Working";
 import { formatDate } from "@/lib/format";
 import { STATUS_LABEL, applyReverseEvidence, findPrevious, reverseEvidence } from "@/lib/graph";
 import { useAllData } from "@/lib/hooks";
 import { isPersonaId } from "@/lib/personas";
 import { useUI } from "@/lib/store";
 import type { Concept, Session } from "@/lib/types";
-import { AttemptSummary } from "./AttemptSummary";
-import { ConceptDetail } from "./ConceptDetail";
+import { DetailBox } from "./DetailBox";
+import { SummaryBox } from "./SummaryBox";
 
 // React Flow measures the DOM, so render it on the client only.
 const ConceptGraph = dynamic(() => import("./ConceptGraph"), {
   ssr: false,
-  loading: () => <StatusLine>Loading map...</StatusLine>,
+  loading: () => <Working label="Drawing map..." />,
 });
 
 type View = "previous" | "current";
@@ -69,18 +70,17 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
     if (topic) setCurrentTopic(topic.name);
   }, [topic, setCurrentTopic]);
 
-  if (!data) return <StatusLine>Loading...</StatusLine>;
+  if (!data) return <Working />;
 
   if (!topic) {
     return (
-      <div className="max-w-[960px]">
-        <PageHeader title="Gap map" />
-        <p className="max-w-[640px] text-ink-2">
-          No maps yet. Finish an Explain session and choose &ldquo;End session and analyze&rdquo; to
-          see which ideas are solid, shaky or missing.
+      <Box id="gap-empty" title="Gap map" bodyClassName="gap-3">
+        <h1 className="sr-only">Gap map</h1>
+        <p className="max-w-[640px] text-[15px] text-text-2">
+          No maps yet. Finish an Explain session and choose End and analyze to see which ideas are solid, shaky or missing.
         </p>
-        <Link href="/" className={buttonClass("secondary", "mt-4")}>Start a session</Link>
-      </div>
+        <Link href="/session" className={buttonClass("primary", "self-start")}>Start a session</Link>
+      </Box>
     );
   }
 
@@ -121,97 +121,106 @@ export function GapMap({ topicParam, sessionParam }: { topicParam?: string; sess
     return `/session?${qs.toString()}`;
   };
 
+  const smallSelect =
+    "h-8 max-w-[220px] rounded-[10px] border border-line bg-card-2 px-2 text-[12px] font-semibold text-text hover:border-text-3";
+
   return (
-    <div className="max-w-[1100px]">
-      <PageHeader
-        title="Gap map"
-        intro="Each box is an idea a full explanation needs. Click one to see what you said about it."
-      />
-
-      <div className="mb-6 flex flex-wrap items-end gap-x-6 gap-y-4">
-        <div className="min-w-[260px]">
-          <Label htmlFor="gap-topic">Topic</Label>
-          <Select
-            id="gap-topic"
-            value={topic.id}
-            onChange={(e) => {
-              setSelectedId(null);
-              setView("current");
-              router.replace(`/gap-map?topic=${encodeURIComponent(e.target.value)}`);
-            }}
-          >
-            {analyzedTopics.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </Select>
-        </div>
-        {previous && (
-          <div>
-            <span className="mb-1 block text-sm font-medium text-ink-2">Compare</span>
-            <SegmentedToggle
-              label="Attempt to show"
-              options={[
-                { value: "previous", label: `Previous attempt (${formatDate(when(previous))})` },
-                { value: "current", label: `This attempt (${formatDate(when(current))})` },
-              ]}
-              value={view}
-              onChange={(v) => {
-                setView(v);
-                setSelectedId(null);
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      <AttemptSummary session={shown} isNew={isNew} />
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <ConceptGraph concepts={concepts} changes={changes} selectedId={selectedId} onSelect={setSelectedId} />
-        <ConceptDetail
+    <div className="flex flex-col gap-4">
+      <h1 className="sr-only">Gap map</h1>
+      <div className="grid gap-4 desk:h-[calc(100vh-121px)] desk:min-h-[680px] desk:grid-cols-12 desk:grid-rows-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <Box
+          id="graph"
+          title="Gap map"
+          className="min-h-[520px] desk:col-span-8 desk:row-span-2 desk:min-h-0"
+          extra={
+            <>
+              <label htmlFor="gap-topic" className="sr-only">Topic</label>
+              <select
+                id="gap-topic"
+                value={topic.id}
+                className={smallSelect}
+                onChange={(e) => {
+                  setSelectedId(null);
+                  setView("current");
+                  router.replace(`/gap-map?topic=${encodeURIComponent(e.target.value)}`);
+                }}
+              >
+                {analyzedTopics.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+              {previous && (
+                <SegmentedToggle
+                  label="Attempt to show"
+                  options={[
+                    { value: "previous", label: `Previous (${formatDate(when(previous))})` },
+                    { value: "current", label: `Latest (${formatDate(when(current))})` },
+                  ]}
+                  value={view}
+                  onChange={(v) => {
+                    setView(v);
+                    setSelectedId(null);
+                  }}
+                />
+              )}
+            </>
+          }
+        >
+          <ConceptGraph concepts={concepts} changes={changes} selectedId={selectedId} onSelect={setSelectedId} />
+        </Box>
+        <DetailBox
+          className="min-h-[300px] desk:col-span-4 desk:min-h-0"
           concept={selected}
+          concepts={concepts}
           change={selected ? changes[selected.id] : undefined}
           checks={selected ? checksFor(selected.id) : []}
           practiceHref={practiceHref}
+          onSelect={setSelectedId}
+        />
+        <SummaryBox
+          className="min-h-[280px] desk:col-span-4 desk:min-h-0"
+          session={shown}
+          concepts={concepts}
+          sample={topic.sample}
+          isNew={isNew}
         />
       </div>
 
-      <section aria-labelledby="concept-list" className="mt-10">
-        <h2 id="concept-list" className="mb-3 text-xl">All concepts</h2>
+      <Box id="concept-list" title="All concepts">
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-[15px]">
+          <table className="w-full border-collapse text-left text-[14px]">
             <thead>
-              <tr className="border-b border-line text-sm text-ink-2">
-                <th scope="col" className="py-2 pr-4 font-medium">Concept</th>
-                <th scope="col" className="py-2 pr-4 font-medium">Status</th>
-                {compareTo && <th scope="col" className="py-2 pr-4 font-medium">Change</th>}
-                {evidence.length > 0 && <th scope="col" className="py-2 font-medium">Catch the mistake</th>}
+              <tr className="border-b border-line text-[13px] text-text-2">
+                <th scope="col" className="py-2 pr-4 font-semibold">Concept</th>
+                <th scope="col" className="py-2 pr-4 font-semibold">Status</th>
+                {compareTo && <th scope="col" className="py-2 pr-4 font-semibold">Change</th>}
+                {evidence.length > 0 && <th scope="col" className="py-2 font-semibold">Catch the mistake</th>}
               </tr>
             </thead>
             <tbody>
               {concepts.map((c) => (
-                <tr key={c.id} className="border-b border-line">
+                <tr key={c.id} className="border-b border-line last:border-b-0">
                   <td className="py-2.5 pr-4">
                     <button
                       type="button"
                       onClick={() => setSelectedId(c.id)}
                       aria-pressed={c.id === selectedId}
-                      className="text-left text-ink underline-offset-2 hover:underline"
+                      className="text-left font-semibold text-text underline-offset-2 hover:text-lime hover:underline"
                     >
                       {c.label}
                     </button>
                   </td>
-                  <td className="py-2.5 pr-4">{STATUS_LABEL[c.status]}</td>
-                  {compareTo && <td className="py-2.5 pr-4 text-ink-2">{changeText(c, compareTo) ?? "no change"}</td>}
+                  <td className="py-2.5 pr-4"><StatusMark status={c.status} /></td>
+                  {compareTo && <td className="py-2.5 pr-4 text-text-2">{changeText(c, compareTo) ?? "no change"}</td>}
                   {evidence.length > 0 && (
-                    <td className="py-2.5 text-ink-2">{VERDICT_TEXT[checksFor(c.id)[0]?.verdict ?? "none"]}</td>
+                    <td className="py-2.5 text-text-2">{VERDICT_TEXT[checksFor(c.id)[0]?.verdict ?? "none"]}</td>
                   )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </Box>
     </div>
   );
 }
