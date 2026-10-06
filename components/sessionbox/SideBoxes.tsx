@@ -72,11 +72,13 @@ export function ConceptsSoFarBox({ data, active }: { data: DashData; active?: Ac
       ) : concepts.length > 0 ? (
         <>
           <p className="tnum text-[13px] text-text-2">
-            {mentioned} of {concepts.length} mentioned, from your last map. The full check runs when you analyze.
+            {active.mode === "reverse"
+              ? "From your last map. Planted mistakes often target the shaky ones."
+              : `${mentioned} of ${concepts.length} mentioned, from your last map. The full check runs when you analyze.`}
           </p>
           <ul className="flex min-h-0 flex-col gap-1.5 overflow-y-auto text-[13px]">
             {concepts.map((c) => {
-              const hit = conceptMentioned(c.label, said);
+              const hit = active.mode === "explain" && conceptMentioned(c.label, said);
               return (
                 <li key={c.id} className="flex items-start justify-between gap-2 rounded-[10px] border border-line bg-card-2 px-2.5 py-1.5">
                   <span className={hit ? "text-text" : "text-text-2"}>{c.label}</span>
