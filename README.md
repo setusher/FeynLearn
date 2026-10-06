@@ -1,214 +1,205 @@
 # FeynLearn
 
-FeynLearn helps students move beyond memorization by making them teach a concept. You explain a
-topic to a simulated learner who knows nothing about it; FeynLearn then maps which parts of your
-understanding are solid, shaky or missing, asks you to catch planted mistakes, gives you realistic
-scenarios to apply the idea, and brings topics back on a spaced schedule from a new angle.
+**Learn it by teaching it.** FeynLearn makes you explain a topic to an AI learner who knows nothing, then shows
+exactly which ideas you have solid, shaky or missing, and makes you catch mistakes and apply the idea to real
+situations.
 
-No login. All user data lives in the browser (IndexedDB). The only server code is a set of API
-routes that call the LLM so the API key stays secret.
+**Track:** AI + Education (ForgeHacks, "AI for Real World Problems")
+**Live demo:** _add the Vercel link here_
+**Demo video:** _add the video link here_
 
-The full product spec is in [`BUILD_SPEC.md`](./BUILD_SPEC.md).
+![FeynLearn dashboard](docs/screenshots/02-dashboard.png)
 
-## What you can do
+## The problem
 
-| Goal | Feature | Where |
+Most studying is recognition: rereading notes, highlighting, flashcards. It feels like learning, but it breaks
+down the moment you have to explain *why* something happens or use it in a new situation. Students find this out
+in the exam, not before.
+
+**Who it is for**
+
+- Students who can recite definitions but cannot explain them.
+- Self-learners with no teacher to question them.
+- Anyone preparing for an exam or interview who needs to know where their understanding actually has gaps.
+
+## The solution
+
+The Feynman technique says you understand something when you can explain it simply to someone else. FeynLearn
+turns that into a loop:
+
+1. **Explain** the topic to a learner persona that asks one probing question at a time and flags misconceptions.
+2. **See the gaps** on a concept map built from your own words, with a quote as evidence for every node.
+3. **Catch the mistake** in an explanation with errors planted where students usually go wrong.
+4. **Apply it** to a concrete scenario and get graded on reasoning, not recall.
+5. **Revisit** on a spaced schedule, each time from a different angle.
+
+| | |
+| --- | --- |
+| ![Explain mode with a misconception flag](docs/screenshots/08-explain.png) | ![Gap map with before and after](docs/screenshots/03-gap-map.png) |
+| Explain mode: the learner probes, and wrong statements get a "Common misconception" callout. | Gap map: concepts marked solid, shaky or missing, compared with your previous attempt. |
+| ![Catch the mistake reveal](docs/screenshots/09-catch-the-mistake.png) | ![Apply it rubric](docs/screenshots/05-apply.png) |
+| Catch the mistake: flag the planted errors, then see what you caught and missed. | Apply it: a realistic scenario, a 3-criterion rubric and a model answer. |
+| ![Understanding](docs/screenshots/04-understanding.png) | ![Welcome screen](docs/screenshots/01-welcome.png) |
+| Understanding: score over time and how it is calculated. | Welcome screen. |
+
+More: [Revisit](docs/screenshots/06-revisit.png), [Notes](docs/screenshots/07-notes.png),
+[dashboard on a phone](docs/screenshots/10-dashboard-mobile.png).
+
+## Features, mapped to the track prompt
+
+| Prompt | Feature | How it works |
 | --- | --- | --- |
-| Understand | **Explain** a topic to a curious 10-year-old, a skeptical friend or a strict professor. The learner asks one question at a time and flags misconceptions inline. Voice input and read-aloud are available where the browser supports them. | `/session` |
-| Understand | **Catch the mistake**: read an explanation with 1-3 planted errors, flag them, then see what you caught, missed or flagged wrongly. | `/session` (toggle) |
-| Connect | **Gap map**: after a session, a graph of 5-8 key concepts marked solid, shaky or missing, with your own words as evidence and a before/after comparison. | `/gap-map` |
-| Connect | **Revisit**: spaced review (1, 3, 7, 14, 30 days) that comes back from a different angle each time. | `/revisit` |
-| Apply | **Apply it**: a realistic scenario, a 3-criterion rubric and a model answer. | `/apply` |
-| Track | **Understanding**: overall score, score over time per topic, and a per-topic table. | `/understanding` |
-| Ground | **Notes**: upload PDF/TXT or paste text; linked notes become the reference for every AI request on that topic. | `/notes` |
+| **Understand concepts** | Feynman chat | Explain to a curious 10-year-old, a skeptical friend or a strict professor. One question per turn; jargon and hand-waving get challenged. Voice input and read-aloud where the browser supports them. |
+| | Misconception flags | When you state something false, the reply comes with a one-sentence correction, and it is logged. |
+| **Make connections** | Gap map | After a session, 5-8 key concepts with dependencies, each solid, shaky or missing with your own words as evidence. Toggle "previous vs latest" to watch red turn green. |
+| | Revisit angles | SM-2-style spacing (1, 3, 7, 14, 30 days; a poor score resets). Each revisit rotates the angle: new persona, analogy, Apply it, Catch the mistake. |
+| **Apply what they learn** | Apply it | A concrete scenario with names and numbers, graded 0-2 on using the concept, sound reasoning and limits, with a model answer after you submit. |
+| | Catch the mistake | 1-3 plausible errors planted in an explanation (Obvious, Moderate, Subtle). You flag and justify; it reports caught, partly, missed and false alarms. |
+| **Grounding** | Your notes | Upload a PDF or TXT, or paste text. Linked notes become the reference the AI judges you against. Notes never leave the browser; only a relevant excerpt is sent. |
 
-First run: press "Try a sample topic" on the dashboard to load "Why do seasons happen?" with past
-attempts, so the Gap map comparison and charts have something to show. Settings (sidebar footer)
-exports everything as JSON or clears all data, including the sample.
+## Technical approach
 
-## Project layout
+**Where AI is used.** Four API routes, each with a narrow job and a Zod schema for its output:
 
+- **Conversational persona** (`/api/chat`): a learner who knows nothing and asks one short question per turn,
+  returning `{ reply, misconception }` so the callout is structured data, not parsed text.
+- **Structured analysis** (`/api/analyze`): grades the transcript into concepts with status, a verbatim
+  quote or "not mentioned" as evidence, a note, and `dependsOn` edges for the graph.
+- **Adversarial generation** (`/api/reverse`): writes an explanation with planted errors tied to common
+  misconceptions, then judges the student's flags.
+- **Rubric grading** (`/api/challenge`): writes a scenario, then scores the answer on three criteria and sketches a
+  model answer.
+
+**Prompt design.** Prompts live in `lib/prompts.ts`. The persona is told never to lecture or give answers, to
+probe vague words, and to wrap up after about eight turns. The analysis must quote only the student, must keep
+concept labels as true statements (errors go under misconceptions), and reuses concept ids from the previous
+attempt so attempts can be compared node by node. Planted errors must be stated confidently, with no hints such as
+"many people think".
+
+**Reliability.** Every model response is validated with Zod and retried once if malformed. If the main model is
+overloaded or rate limited, the call falls back to a lighter model. Things that should not depend on the model are
+plain code with unit tests: coverage from concept statuses, "missed" verdicts and false alarms, the score formula,
+the review scheduler, and cycle removal in the concept graph.
+
+**Grounding in notes.** PDF text is extracted in the browser with pdfjs-dist. A note linked to a topic is split
+into chunks, and the chunks sharing the most keywords with the topic (up to about 6,000 characters) go with each
+request as the source of truth, never quoted back to the student.
+
+**Privacy.** No accounts, no server database. Everything is stored in the browser with Dexie (IndexedDB); the
+API key stays on the server.
+
+### Architecture
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser"]
+    UI["Next.js pages (bento UI)"]
+    Store["Zustand (UI state)"]
+    DB[("Dexie / IndexedDB")]
+    PDF["pdfjs-dist"]
+    Speech["Web Speech API"]
+  end
+  subgraph Server["Next.js API routes"]
+    Routes["/api/chat, /api/analyze,<br/>/api/reverse, /api/challenge"]
+    LLM["lib/llm.ts: Zod validation,<br/>retry, model fallback"]
+  end
+  Gemini[["Google Gemini"]]
+  UI <--> Store
+  UI <--> DB
+  PDF --> DB
+  Speech --> UI
+  UI -- "topic, transcript, notes excerpt" --> Routes
+  Routes --> LLM --> Gemini
 ```
-app/                 routes; app/api/{chat,analyze,reverse,challenge}/route.ts are the only server code
-components/          UI by area (shell, dashboard, session, gapmap, apply, understanding, revisit, notes, ui)
-lib/llm.ts           the one place that knows the provider and model (swap to Groq here)
-lib/prompts.ts       every LLM prompt
-lib/schemas.ts       Zod schemas for requests and model output
-lib/db.ts            Dexie (IndexedDB) tables; lib/types.ts is the data model
-lib/score.ts         understanding score formula      lib/sm2.ts  spaced-review scheduler
-lib/graph.ts         concept graph cleanup and Catch-the-mistake evidence
-lib/notes.ts         note excerpt selection           lib/speech.ts  Web Speech helpers
-tests/               Vitest unit tests (scheduler, score, graph, history, revisit, notes)
-```
 
-## Setup
+More detail in [docs/architecture.md](docs/architecture.md).
+
+### Understanding score
+
+Each topic is scored 0-100: 40% concept coverage from the latest analysis, 25% accuracy (misconceptions lower it),
+20% Apply it rubric average, 15% Catch the mistake. When a part has no data yet, its weight is shared among the
+others. Overall understanding is the average across topics. See `lib/score.ts`.
+
+## Real-world impact
+
+FeynLearn targets the gap between "I have read it" and "I can explain and use it". Explaining surfaces gaps that
+rereading hides; the gap map tells a learner exactly what to study next instead of rereading everything; catching
+planted mistakes trains the critical reading that exams and real work need; and spaced revisits from new angles
+fight the forgetting curve without repeating the same drill. It needs only a browser, works with a student's own
+course notes, and costs nothing to run on free tiers.
+
+## Limitations
+
+- **The AI can be wrong.** Analyses and grades come from a language model and can misjudge an answer or miss an
+  error. Linking good notes helps; the scores are a guide, not a grade.
+- **Free-tier limits.** Gemini's free tier allows only a few requests per minute and models are sometimes
+  overloaded. The app falls back to a second model and shows a "try again" message if both are unavailable.
+- **Browser-only storage.** Data lives in one browser. Clearing site data or switching devices loses it (Settings
+  has a JSON export).
+- **Speech support.** Voice input needs a browser with speech recognition (Chrome, Edge, Safari) and microphone
+  permission; the mic button is hidden otherwise.
+- Scanned PDFs (images only) have no extractable text; paste the text instead.
+- The rate limit is in memory and best-effort; it resets when a serverless function restarts.
+
+## Run it locally
 
 ```bash
 npm i
-cp .env.example .env.local   # then add your key
+cp .env.example .env.local   # then add your key: GEMINI_API_KEY=...
 npm run dev                  # http://localhost:3000
 ```
 
-Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest).
+Get a free key at [Google AI Studio](https://aistudio.google.com/apikey). On first launch the app asks for your
+name and loads sample data (two topics with history, a challenge and two notes), labeled "Sample data".
 
-## Environment variables
+Other scripts: `npm run build`, `npm run lint`, `npm test` (Vitest: scheduler, score formula, concept graph,
+dashboard maths, note excerpts, revisit angles).
 
-| Name             | Required | Notes                                                        |
-| ---------------- | -------- | ------------------------------------------------------------ |
-| `GEMINI_API_KEY` | Yes      | Google AI Studio key (free tier works). Server-side only.    |
-| `GEMINI_MODEL`   | No       | Main model. Default `gemini-3.8-flash`.                      |
-| `GEMINI_FALLBACK_MODEL` | No | Used when the main model is overloaded or rate limited. Default `gemini-3.5-flash-lite`. |
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Yes | Server-side only. |
+| `GEMINI_MODEL` | No | Main model, default `gemini-3.8-flash`. |
+| `GEMINI_FALLBACK_MODEL` | No | Used when the main model is overloaded or rate limited, default `gemini-3.5-flash-lite`. |
 
 ## Deploy to Vercel
 
-1. Push this folder to a Git repository.
-2. In Vercel, "Add New Project" and import the repository. If the repo root is not this folder,
-   set "Root Directory" to `FeynLearn`.
-3. Add `GEMINI_API_KEY` under Settings > Environment Variables.
-4. Deploy. No other configuration, database or paid service is needed.
+1. Push the repository to GitHub.
+2. In Vercel, choose **Add New Project** and import it. If the app is not at the repository root, set
+   **Root Directory** to the app folder.
+3. Add `GEMINI_API_KEY` under **Settings > Environment Variables**.
+4. Deploy. No database, auth or paid service is needed. Each API route sets `maxDuration = 60` seconds, well
+   inside the Hobby plan limit.
 
-Each API route sets `maxDuration = 60` (seconds). AI calls usually take 2-30 seconds; this is well
-inside the Hobby plan limit and stops a stuck call from running for minutes.
+## Screenshots
 
-## Build status
+`docs/screenshots/` is generated by `scripts/capture-screenshots.mjs` against a running app:
 
-- [x] Phase 1: shell, theme, sidebar layout, route stubs, dashboard with sample data and empty state
-- [x] Phase 2: Explain mode
-- [x] Phase 3: Analyze and Gap map
-- [x] Phase 4: Catch the mistake
-- [x] Phase 5: Apply it, Understanding, Revisit, Notes
-- [x] Phase 6: Voice and polish
-- [x] Phase 7: Design audit
+```bash
+npm i -D playwright && npx playwright install chromium
+npm run dev
+node scripts/capture-screenshots.mjs           # add LIVE=1 to include Explain and Catch the mistake
+```
 
-## UI rebuild (UI_SPEC.md) status
+## Tech stack
 
-The first editorial design is tagged `v1-editorial`. [`UI_SPEC.md`](./UI_SPEC.md) replaces its visual rules
-with a dark, lime-accent bento layout.
+Next.js (App Router) and TypeScript, Tailwind CSS, Zustand, Dexie (IndexedDB), Vercel AI SDK with
+`@ai-sdk/google` (Gemini), Zod, React Flow (`@xyflow/react`) with dagre, Recharts, pdfjs-dist, Web Speech API,
+Vitest. Font: Manrope.
 
-- [x] Phase 1: tokens, Manrope, top bar with pill tabs, /welcome, bento dashboard with seeded data
-- [ ] Phase 2: Session box (Explain inside the dashboard)
-- [ ] Phase 3: Analyze and Gap map
-- [ ] Phase 4: Catch the mistake
-- [ ] Phase 5: Understanding, Apply it, Revisit, Notes pages
-- [ ] Phase 6: Voice, responsive, accessibility, settings, tests
-- [ ] Phase 7: Submission pack
-- [ ] Phase 8: Design audit
+## Docs
 
-UI rebuild decisions:
+- [docs/architecture.md](docs/architecture.md): diagram and request flow
+- [docs/SUBMISSION.md](docs/SUBMISSION.md): submission text
+- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md): 3-minute demo script
+- [docs/DECISIONS.md](docs/DECISIONS.md): design and engineering decisions
+- [BUILD_SPEC.md](BUILD_SPEC.md) and [UI_SPEC.md](UI_SPEC.md): the specs it was built from
 
-- `--text-3` (#66666B) is only 3.2:1 on cards, below AA for text, so it is used for disabled controls,
-  placeholders and decorative marks only. Readable hints, including the notes privacy line, use `--text-2`.
-- Old token names (`surface`, `ink`, `accent`, ...) are mapped onto the new palette in `globals.css`, so pages not yet
-  rebuilt render correctly on the dark theme until their phase.
-- Settings live in a Dexie `settings` table (v2 schema). `seeded` means "demo data was auto-loaded once"; Clear all
-  data keeps the name and leaves `seeded` true so the demo does not reappear, and Settings > Load demo data
-  brings it back on request (replacing any earlier sample). Sample topics and notes carry `sample: true` and show
-  a "Sample data" chip.
-- First launch (no name) redirects to /welcome. /welcome never redirects away, so the logo can always return there.
-- Dashboard boxes are not links themselves (they hold inputs and buttons); each has an arrow link at the top right,
-  and the border lights up on hover or focus inside.
-- The dashboard grid has a fixed height (viewport minus top bar) at 1100px and up, so the `1fr` rows divide the
-  screen instead of growing with content; it fits 1440x900 without scrolling. Below 1100px it is a 6-column grid,
-  below 700px a single column.
-- The understanding donut splits the overall score into each part's weighted contribution, so the segments add up to
-  the number in the middle; the legend shows each part's own average.
-- The reference screenshot (dt.png) was not available, so the layout follows the written description.
-- Welcome page: black background with lime type, three zones (top row, greeting and steps, wordmark). The
-  wordmark is sized with canvas text metrics so its visible letters, not its text box, span the content width
-  exactly; it re-fits on resize and after fonts load. It fits 1440x900 and 1920x1080 without scrolling;
-  smaller screens scroll with the wordmark last. `--text-2` on the black background is 7.0:1.
-- Commits carry no AI co-author trailer, at the repository owner's request.
+## Team and credits
 
-## Decisions
+- _Team: add names and roles here._
+- Built by Shradha Thakur ([@setusher](https://github.com/setusher)).
+- Uses Google Gemini, and the open-source libraries listed above.
 
-- **Project location:** the app lives in its own `FeynLearn/` folder, because the parent folder
-  holds unrelated Python tooling guidelines.
-- **Versions:** Next.js 16 (App Router), React 19, Tailwind CSS 4, AI SDK 7, Zod 4, Dexie 4,
-  Zustand 5, Vitest 5. Tailwind 4 keeps the theme tokens in `app/globals.css` (`@theme`) instead of
-  a `tailwind.config.ts`.
-- **Fonts:** Newsreader for headings and large numerals, IBM Plex Sans for UI text.
-- **Settings** is a page at `/settings`, linked from the sidebar footer. Clearing data asks for an
-  inline confirmation instead of opening a modal.
-- **Sample data** adds two topics ("Why do seasons happen?" with two explain attempts, one
-  catch-the-mistake round and one challenge; plus a short vaccines topic) so the dashboard, Gap
-  map comparison and charts are populated. It is stored like any other data and removed by
-  "Clear all data".
-- **Spaced review:** scores below 50 reset the interval to 1 day, 50-69 repeat the current
-  interval, 70+ advance through 1, 3, 7, 14, 30 days, then grow by the SM-2 ease factor.
-- **Top bar topic** reflects the topic typed in "Start a session" or the active session.
-- **Structured output:** AI SDK 7 deprecates `generateObject`, so `lib/llm.ts` uses
-  `generateText` with `Output.object({ schema })`. Output is validated with Zod, retried once if
-  malformed, then reported as a plain error message.
-- **Models:** `gemini-2.5-flash` is no longer available to new API keys, so the default is
-  `gemini-3.8-flash`. Because free-tier models are often overloaded (HTTP 503) and quotas are per
-  model, a failed call is retried once on `gemini-3.5-flash-lite` before showing an error.
-- **Chat replies are not streamed.** The reply and the misconception flag arrive together as one
-  JSON object, which keeps the callout in sync with its message.
-- **Sessions are saved on the first message**, not when the page opens, so browsing to
-  `/session` never leaves empty records. The session id is added to the URL so a refresh resumes
-  the conversation. Discarding a session also removes its topic if nothing else uses it.
-- **Switching modes mid-session** asks first, then keeps the conversation as an unfinished session.
-- **Analysis scores:** coverage is computed from the concept statuses (solid = 1, shaky = 0.5,
-  missing = 0, averaged), not taken from the model, so it always matches the map. Accuracy comes
-  from the model but is capped 15 points lower for each misconception it lists.
-- **Comparable attempts:** when a topic was analyzed before, its concept ids and labels are sent
-  with the new analysis and the model is asked to reuse them, so the Gap map can show
-  "was missing" / "was shaky" per node. Concepts are matched by id, then by label.
-- **Concept graph safety:** model output is cleaned in `lib/graph.ts` (unique slug ids, unknown
-  dependencies dropped, cycles broken) before it is saved or drawn.
-- **Gap map layout:** dagre, top to bottom, foundations first. Nodes cannot be dragged and scroll
-  does not zoom (so the page scrolls normally); zoom buttons sit in a row above the map. An
-  "All concepts" table under the map gives the same information as text for keyboard and screen
-  reader users and small screens.
-- **Analyzing a session** updates the topic's score and its spaced-review schedule.
-- **Catch the mistake:** the API returns which paragraphs hold planted errors; the client keeps
-  that only in React state and IndexedDB (to resume after a refresh) and never renders it until
-  the reveal. "Missed" verdicts and false alarms are decided on the server; the model only judges
-  the reasons for flagged paragraphs. Score: caught = 1, partly = 0.5, missed = 0, averaged,
-  minus 10 per false alarm.
-- **Catch the mistake on the Gap map:** when a topic has a map, each planted error is tied to a
-  concept. A later round nudges that concept one step (a miss drops solid to shaky, a catch lifts
-  missing to shaky) and the detail panel lists the results. Explaining stays the stronger evidence.
-- **"New explanation"** replaces the unfinished round instead of keeping it.
-- **Shared rescoring:** every finished activity (analysis, catch the mistake, graded challenge)
-  calls `rescoreTopic` in `lib/progress.ts`, which recomputes the topic score and moves the next
-  review with SM-2. So an Apply it revisit reschedules the topic just like a session.
-- **Apply it:** an unanswered scenario is kept (with your draft answer, saved when you leave the
-  box) until you submit it or ask for a new one. New scenarios are told to differ from the last five.
-- **Understanding chart:** one topic at a time (a topic select), so it is a single series in the
-  accent color with no legend. Each point is the score right after a finished activity, recomputed
-  with the same formula. The draw-in animation is off to keep motion to short transitions.
-- **Revisit angles** rotate persona -> analogy -> apply -> catch the mistake. The angle is
-  recorded when you press "Start revisit". "New persona" picks a persona different from the last
-  explain session. The analogy angle adds a rule to the learner prompt to ask for an analogy and
-  probe where it breaks down.
-- **Notes:** PDF text is extracted in the browser with pdfjs-dist (its worker is bundled by Next).
-  A topic links to one note; a note can serve several topics. Excerpts: the whole note if it is
-  under 6,000 characters, otherwise the ~800-character chunks sharing the most keywords with the
-  topic (and focus), kept in their original order. The excerpt is sent with chat, analysis, catch
-  the mistake and Apply it requests, and sessions show "Using your notes: <title>".
-- **Voice:** the mic (Explain chat and Apply it answers) uses the Web Speech API and is hidden
-  when the browser has no speech recognition (for example Firefox). Speech is appended to what
-  you already typed. "Read replies aloud" uses speech synthesis; the choice is remembered in this
-  browser only.
-- **Accessibility:** checked with axe-core on every page at 1440px and 390px (no violations).
-  Status always has a text label next to its colored square; the chat transcript is an
-  `aria-live` region; all inputs have labels. Small "shaky" text on its tinted callout uses a
-  darker shade (`--status-shaky-text`) to reach 4.5:1 contrast.
-- **Design audit:** no shadows, gradients, blur, translucency, emoji, animations (chart
-  draw-in is off) or radii above 4px; icons only for mic and upload. Concepts on the Gap map are
-  always true statements; a student's error appears as a misconception, never as a concept.
-- **Dark theme** was not built (the spec lists it as optional).
-- **Rate limit:** 20 API requests per minute per IP, in memory.
-- **Next.js dev badge** is turned off (`devIndicators: false`) because it floats over the sidebar.
+## License
 
-## Known limitations
-
-- Data is per browser. Clearing site data or switching devices loses it (use Settings > Export).
-- Gemini's free tier allows only a few requests per minute and models are sometimes overloaded;
-  the app shows a "try again" message when both models are unavailable.
-- Voice input needs a browser with speech recognition (Chrome, Edge, Safari) and microphone
-  permission.
-- Scanned PDFs (images only) have no extractable text; paste the text instead.
-- The per-IP rate limit is in memory and best-effort; it resets whenever the serverless function
-  restarts.
+[MIT](LICENSE)
