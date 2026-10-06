@@ -113,6 +113,11 @@ UI rebuild decisions:
 - The understanding donut splits the overall score into each part's weighted contribution, so the segments add up to
   the number in the middle; the legend shows each part's own average.
 - The reference screenshot (dt.png) was not available, so the layout follows the written description.
+- Welcome page: black background with lime type, three zones (top row, greeting and steps, wordmark). The
+  wordmark is sized with canvas text metrics so its visible letters, not its text box, span the content width
+  exactly; it re-fits on resize and after fonts load. It fits 1440x900 and 1920x1080 without scrolling;
+  smaller screens scroll with the wordmark last. `--text-2` on the black background is 7.0:1.
+- Commits carry no AI co-author trailer, at the repository owner's request.
 
 ## Decisions
 
