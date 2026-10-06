@@ -13,7 +13,7 @@
   /* Only 3.2:1 on --card: use for disabled controls and decorative marks, never readable text. */
   --text-3: #66666b;
   --lime: #c6f432;
-  --lime-hover: #b4e01f;
+  --lime-hover: #b5e02a;
   --on-lime: #0b0b0c;
   --solid: #c6f432;
   --shaky: #f2b53a;
@@ -182,7 +182,22 @@
   .bento > .area-e { min-height: 0; }
 }
 
-/* On the lime welcome screen the lime focus ring would be invisible. */
-.welcome :focus-visible {
-  outline-color: var(--on-lime);
+/* Welcome greeting: clamp(48px, 14vw, 72px) on phones, clamp(64px, 9vw, 160px) from 700px. */
+.welcome-hi {
+  font-size: clamp(48px, 14vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+@media (min-width: 700px) {
+  .welcome-hi {
+    font-size: clamp(64px, 9vw, 160px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition: none !important;
+  }
 }

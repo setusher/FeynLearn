@@ -1,10 +1,12 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/Button";
 import { ensureSeeded } from "@/components/shell/FirstRunGate";
 import { updateSettings, useSettings } from "@/lib/settings";
+import { FitWordmark } from "./FitWordmark";
 
 const STEPS = [
   { title: "Explain it.", text: "Teach a topic to a learner who knows nothing and keeps asking why." },
@@ -20,38 +22,54 @@ export function WelcomeScreen() {
   const [error, setError] = useState("");
 
   const savedName = settings?.name ?? "";
+  const returning = savedName.length > 0;
   const name = draft ?? savedName;
+  const clean = name.trim().slice(0, 40);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const clean = name.trim().slice(0, 40);
-    if (!clean) {
-      setError("Type a name, or any word you like to be called.");
-      return;
-    }
+    if (!clean) return;
     setBusy(true);
     try {
-      await updateSettings({ name: clean });
+      if (clean !== savedName) await updateSettings({ name: clean });
       await ensureSeeded();
       router.push("/");
     } catch {
-      setError("Could not save that. Your browser may be blocking local storage.");
+      setError("Could not save your name. Your browser may be blocking local storage.");
       setBusy(false);
     }
   }
 
   return (
-    <main className="welcome flex min-h-screen flex-col justify-between gap-12 bg-lime p-6 text-on-lime tab:p-10 desk:p-14">
-      <div className="max-w-[960px]">
-        <h1 className="text-[56px] font-bold leading-none tracking-tight tab:text-[72px]">
-          {savedName ? `Hi, ${savedName}.` : "Hi."}
-        </h1>
+    <main className="flex min-h-[100dvh] flex-col bg-bg px-5 text-lime tab:px-12">
+      {/* Zone 1: top row */}
+      <div className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line">
+        <span className="flex items-center gap-2.5">
+          <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] bg-lime text-[15px] font-bold text-on-lime">
+            F
+          </span>
+          <span className="text-[20px] font-bold tracking-tight">FeynLearn</span>
+        </span>
+        {returning && (
+          <Link href="/" className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-lime no-underline hover:underline">
+            Skip to dashboard
+            <ArrowRight size={16} strokeWidth={2} aria-hidden />
+          </Link>
+        )}
+      </div>
 
-        <form onSubmit={onSubmit} className="mt-6 flex max-w-[620px] flex-col gap-2">
-          <label htmlFor="welcome-name" className="text-[18px] font-semibold">
-            {savedName ? "Not you? Change your name, or carry on." : "What should I call you?"}
-          </label>
-          <div className="flex flex-wrap gap-2">
+      {/* Zone 2: greeting and form on the left, how it works on the right */}
+      <div className="grid flex-1 content-center gap-x-6 gap-y-12 py-10 desk:grid-cols-12 desk:py-8">
+        <section className="desk:col-span-6" aria-labelledby="welcome-greeting">
+          <h1 id="welcome-greeting" className="welcome-hi break-words font-bold text-lime">
+            {returning ? `Hi, ${savedName}.` : "Hi."}
+          </h1>
+          <p id="welcome-sub" className="mt-4 text-[20px] text-text-2">
+            {returning ? "Not you? Change your name, or carry on." : "What should I call you?"}
+          </p>
+
+          <form onSubmit={onSubmit} className="mt-6 flex max-w-[720px] flex-col gap-3 tab:flex-row">
+            <label htmlFor="welcome-name" className="sr-only">Your name</label>
             <input
               id="welcome-name"
               value={name}
@@ -61,39 +79,49 @@ export function WelcomeScreen() {
               }}
               maxLength={40}
               autoComplete="given-name"
+              autoFocus={settings !== undefined && !returning}
+              aria-describedby="welcome-sub"
               placeholder="Your name"
-              className="h-12 min-w-[220px] flex-1 rounded-[12px] border-2 border-on-lime bg-transparent px-4 text-[17px] font-semibold text-on-lime placeholder:text-on-lime/60"
+              className="h-14 w-full min-w-0 rounded-[12px] border border-line bg-card px-4 text-[18px] text-text placeholder:text-text-2 transition-colors duration-150 focus:border-2 focus:border-lime focus:px-[15px] tab:max-w-[560px] tab:flex-1"
             />
-            <Button type="submit" variant="dark" disabled={busy || settings === undefined} className="h-12">
-              {busy ? "Working..." : savedName && name.trim() === savedName ? "Continue" : "Enter"}
-            </Button>
-          </div>
+            <button
+              type="submit"
+              disabled={!clean || busy || settings === undefined}
+              className="inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-[12px] bg-lime px-6 text-[17px] font-semibold text-on-lime transition-colors duration-150 hover:bg-lime-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? "Working..." : "Continue"}
+              <ArrowRight size={18} strokeWidth={2} aria-hidden />
+            </button>
+          </form>
           {error && (
-            <p role="alert" className="text-[14px] font-semibold">
+            <p role="alert" className="mt-3 text-[15px] text-missing">
               {error}
             </p>
           )}
-        </form>
+        </section>
 
-        <ul className="mt-12 grid max-w-[900px] gap-6 tab:grid-cols-3">
-          {STEPS.map((s) => (
-            <li key={s.title}>
-              <p className="text-[18px] font-bold">{s.title}</p>
-              <p className="mt-1 text-[14px] font-medium">{s.text}</p>
-            </li>
-          ))}
-        </ul>
+        <section className="desk:col-span-5 desk:col-start-8" aria-label="How it works">
+          <ol className="border-y border-line">
+            {STEPS.map((s, i) => (
+              <li
+                key={s.title}
+                className="flex gap-5 border-b border-line px-4 py-6 transition-colors duration-150 last:border-b-0 hover:bg-card"
+              >
+                <span className="tnum pt-2 text-[14px] font-semibold text-lime">{String(i + 1).padStart(2, "0")}</span>
+                <span>
+                  <span className="block text-[22px] font-semibold leading-tight text-lime tab:text-[28px]">{s.title}</span>
+                  <span className="mt-1 block text-[16px] text-text-2">{s.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
 
-      <div>
-        <p className="text-[18px] font-semibold tab:text-[22px]">Learn it by teaching it.</p>
-        <p
-          aria-hidden
-          className="pb-[0.12em] font-bold leading-[0.85] tracking-[-0.045em]"
-          style={{ fontSize: "clamp(72px, 15vw, 200px)" }}
-        >
-          FeynLearn
-        </p>
+      {/* Zone 3: tagline and the full-width wordmark */}
+      <div className="shrink-0 pb-6">
+        <p className="mb-2 text-[22px] font-medium text-lime">Learn it by teaching it.</p>
+        <FitWordmark text="FeynLearn" className="text-lime" />
       </div>
     </main>
   );
