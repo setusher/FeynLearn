@@ -80,6 +80,40 @@ inside the Hobby plan limit and stops a stuck call from running for minutes.
 - [x] Phase 6: Voice and polish
 - [x] Phase 7: Design audit
 
+## UI rebuild (UI_SPEC.md) status
+
+The first editorial design is tagged `v1-editorial`. [`UI_SPEC.md`](./UI_SPEC.md) replaces its visual rules
+with a dark, lime-accent bento layout.
+
+- [x] Phase 1: tokens, Manrope, top bar with pill tabs, /welcome, bento dashboard with seeded data
+- [ ] Phase 2: Session box (Explain inside the dashboard)
+- [ ] Phase 3: Analyze and Gap map
+- [ ] Phase 4: Catch the mistake
+- [ ] Phase 5: Understanding, Apply it, Revisit, Notes pages
+- [ ] Phase 6: Voice, responsive, accessibility, settings, tests
+- [ ] Phase 7: Submission pack
+- [ ] Phase 8: Design audit
+
+UI rebuild decisions:
+
+- `--text-3` (#66666B) is only 3.2:1 on cards, below AA for text, so it is used for disabled controls,
+  placeholders and decorative marks only. Readable hints, including the notes privacy line, use `--text-2`.
+- Old token names (`surface`, `ink`, `accent`, ...) are mapped onto the new palette in `globals.css`, so pages not yet
+  rebuilt render correctly on the dark theme until their phase.
+- Settings live in a Dexie `settings` table (v2 schema). `seeded` means "demo data was auto-loaded once"; Clear all
+  data keeps the name and leaves `seeded` true so the demo does not reappear, and Settings > Load demo data
+  brings it back on request (replacing any earlier sample). Sample topics and notes carry `sample: true` and show
+  a "Sample data" chip.
+- First launch (no name) redirects to /welcome. /welcome never redirects away, so the logo can always return there.
+- Dashboard boxes are not links themselves (they hold inputs and buttons); each has an arrow link at the top right,
+  and the border lights up on hover or focus inside.
+- The dashboard grid has a fixed height (viewport minus top bar) at 1100px and up, so the `1fr` rows divide the
+  screen instead of growing with content; it fits 1440x900 without scrolling. Below 1100px it is a 6-column grid,
+  below 700px a single column.
+- The understanding donut splits the overall score into each part's weighted contribution, so the segments add up to
+  the number in the middle; the legend shows each part's own average.
+- The reference screenshot (dt.png) was not available, so the layout follows the written description.
+
 ## Decisions
 
 - **Project location:** the app lives in its own `FeynLearn/` folder, because the parent folder
