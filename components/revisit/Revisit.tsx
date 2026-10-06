@@ -48,6 +48,17 @@ export function Revisit({ highlight }: { highlight?: string }) {
     return { day, topics: scheduled.filter((t) => t.nextReview! >= day && t.nextReview! < day + DAY && !isDue(t.nextReview, now)) };
   });
   const sample = scheduled.some((t) => t.sample);
+  const topicName = (id: string) => data.topics.find((t) => t.id === id)?.name ?? "Topic";
+  const recent = [
+    ...data.sessions
+      .filter((s) => s.endedAt && s.score !== undefined)
+      .map((s) => ({ at: s.endedAt!, topic: topicName(s.topicId), what: s.mode === "explain" ? "Explain" : "Catch the mistake", score: s.score })),
+    ...data.challenges
+      .filter((c) => c.rubric)
+      .map((c) => ({ at: c.createdAt, topic: topicName(c.topicId), what: "Apply it", score: undefined as number | undefined })),
+  ]
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 5);
 
   async function start(topic: Topic) {
     const plan = revisitPlan(topic, lastPersona(topic));
@@ -161,7 +172,7 @@ export function Revisit({ highlight }: { highlight?: string }) {
         {upcoming.length === 0 ? (
           <p className="text-[13px] text-text-2">No upcoming reviews. Finish an activity on a topic to schedule it.</p>
         ) : (
-          <ul className="flex min-h-0 flex-col overflow-y-auto">
+          <ul className="flex shrink-0 flex-col">
             {upcoming.map((t) => (
               <li key={t.id} className="flex items-center justify-between gap-3 border-b border-line py-2 text-[13px] last:border-b-0">
                 <span className="min-w-0 truncate font-semibold">{t.name}</span>
@@ -173,6 +184,24 @@ export function Revisit({ highlight }: { highlight?: string }) {
               </li>
             ))}
           </ul>
+        )}
+        {recent.length > 0 && (
+          <div className="flex min-h-0 flex-col gap-1.5">
+            <p className="text-[12px] font-bold uppercase tracking-wide text-text-2">Recent reviews</p>
+            <ul className="flex min-h-0 flex-col overflow-y-auto">
+              {recent.map((r, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 border-b border-line py-1.5 text-[13px] last:border-b-0">
+                  <span className="min-w-0 truncate">
+                    <span className="font-semibold">{r.topic}</span> <span className="text-text-2">· {r.what}</span>
+                  </span>
+                  <span className="tnum shrink-0 text-text-2">
+                    {formatDate(r.at)}
+                    {r.score !== undefined && <span className="ml-2 font-bold text-lime">{r.score}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </Box>
     </div>
