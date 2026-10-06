@@ -12,7 +12,8 @@ export function ChatResult({ session, onNew }: { session: Session; onNew: () => 
   const stat = "rounded-[12px] border border-line bg-card-2 p-3";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
       <div className="grid grid-cols-3 gap-2">
         <div className={stat}>
           <p className="text-[12px] font-semibold text-text-2">Understanding</p>
@@ -60,7 +61,9 @@ export function ChatResult({ session, onNew }: { session: Session; onNew: () => 
         </div>
       )}
 
-      <div className="mt-auto flex flex-wrap gap-2">
+      </div>
+
+      <div className="flex shrink-0 flex-wrap gap-2 border-t border-line pt-3">
         <Link href={`/gap-map?topic=${encodeURIComponent(session.topicId)}&session=${encodeURIComponent(session.id)}`} className={buttonClass("primary")}>
           Open gap map
         </Link>
