@@ -34,7 +34,7 @@ export function Box({
         <h2 id={`${id}-title`} className="truncate text-[14px] font-semibold text-text">
           {title}
         </h2>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
           {extra}
           {href && (
             <Link
