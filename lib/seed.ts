@@ -205,6 +205,23 @@ export async function seedSampleData(now: number = Date.now()): Promise<void> {
     ].join("\n\n"),
   };
 
+  // Not linked on purpose: linking it to the seasons topic is part of the demo.
+  const seasonsNote: Note = {
+    id: newId(),
+    title: "Earth science: why seasons happen",
+    sample: true,
+    createdAt: now - 8 * DAY,
+    text: [
+      "Seasons",
+      "Earth's axis is tilted about 23.4 degrees relative to its orbit, and it keeps pointing the same way (toward Polaris) all year.",
+      "When a hemisphere is tilted toward the Sun, sunlight arrives at a steeper angle, so the same energy falls on a smaller area. Days are also longer. Both mean more energy per day: summer.",
+      "The other hemisphere is tilted away at the same time, so it has winter. Seasons in the two hemispheres are opposite.",
+      "Distance is not the cause. Earth is closest to the Sun (perihelion) in early January, during the northern winter. The orbit is nearly circular; distance changes by only about 3%.",
+      "Seasonal lag: the warmest weeks come about 4 to 6 weeks after the summer solstice because land and especially oceans keep absorbing more energy than they lose.",
+      "Near the equator the Sun's angle changes little through the year, so temperature seasons are weak; wet and dry seasons matter more there.",
+    ].join("\n\n"),
+  };
+
   const seasonsSessions = [first, second, reverse];
   const seasons: Topic = {
     id: seasonsId,
@@ -241,7 +258,7 @@ export async function seedSampleData(now: number = Date.now()): Promise<void> {
     await db.topics.bulkAdd([seasons, interestTopic]);
     await db.sessions.bulkAdd([first, second, reverse, interest]);
     await db.challenges.add(challenge);
-    await db.notes.add(note);
+    await db.notes.bulkAdd([note, seasonsNote]);
     const settings = await db.settings.get("app");
     await db.settings.put({ key: "app", theme: "dark", name: settings?.name, seeded: true });
   });
