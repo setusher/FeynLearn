@@ -227,7 +227,7 @@ export function ExplainChat(props: Props) {
             type="checkbox"
             checked={readAloud.enabled}
             onChange={(e) => readAloud.setEnabled(e.target.checked)}
-            className="h-4 w-4 accent-[var(--accent)]"
+            className="h-4 w-4 accent-[var(--lime)]"
           />
           Read replies aloud
         </label>

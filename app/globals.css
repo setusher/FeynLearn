@@ -1,71 +1,107 @@
 @import "tailwindcss";
 
-/* Design tokens (BUILD_SPEC section 4). Light theme only for now. */
+/* Design tokens (UI_SPEC.md section 1). Dark theme, one lime accent. */
 :root {
-  --bg: #f7f5f0;
-  --surface: #ffffff;
-  --ink: #1b1b18;
-  --ink-2: #5c5a52;
-  --line: #ddd9ce;
-  --accent: #1f3a5f;
-  --accent-hover: #172c48;
-  --status-solid: #2f6b45;
-  --status-shaky: #a66a00;
-  /* Darker shaky for small text on the shaky tint (5.1:1; #a66a00 is only 3.8:1 there). */
-  --status-shaky-text: #8a5800;
-  --status-missing: #a63a2b;
-  --tint-solid: #e3efe6;
-  --tint-shaky: #f6ebd3;
-  --tint-missing: #f5e1dd;
+  color-scheme: dark;
+
+  --bg: #0b0b0c;
+  --card: #151516;
+  --card-2: #1d1d1f;
+  --line: #2a2a2d;
+  --text: #f4f4f2;
+  --text-2: #9a9a9f;
+  /* Only 3.2:1 on --card: use for disabled controls and decorative marks, never readable text. */
+  --text-3: #66666b;
+  --lime: #c6f432;
+  --lime-hover: #b4e01f;
+  --on-lime: #0b0b0c;
+  --solid: #c6f432;
+  --shaky: #f2b53a;
+  --missing: #ff6a5c;
+
+  /* Dark tints for status callouts (text on them stays --text). */
+  --tint-solid: #1e2410;
+  --tint-shaky: #2a2416;
+  --tint-missing: #2c1a18;
+
+  /* Legacy names from the first design, mapped onto the new palette so pages
+     that have not been rebuilt yet still render correctly. */
+  --surface: var(--card);
+  --ink: var(--text);
+  --ink-2: var(--text-2);
+  --accent: var(--lime);
+  --accent-hover: var(--lime-hover);
+  --status-solid: var(--solid);
+  --status-shaky: var(--shaky);
+  --status-shaky-text: var(--shaky);
+  --status-missing: var(--missing);
 }
 
 @theme inline {
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
   --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-solid: var(--status-solid);
-  --color-shaky: var(--status-shaky);
-  --color-shaky-text: var(--status-shaky-text);
-  --color-missing: var(--status-missing);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-lime: var(--lime);
+  --color-lime-hover: var(--lime-hover);
+  --color-on-lime: var(--on-lime);
+  --color-solid: var(--solid);
+  --color-shaky: var(--shaky);
+  --color-missing: var(--missing);
   --color-tint-solid: var(--tint-solid);
   --color-tint-shaky: var(--tint-shaky);
   --color-tint-missing: var(--tint-missing);
 
-  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-newsreader), Georgia, serif;
+  /* Legacy utility names (bg-surface, text-ink, text-accent, ...). */
+  --color-surface: var(--card);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-accent: var(--lime);
+  --color-accent-hover: var(--lime-hover);
+  --color-shaky-text: var(--shaky);
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii: boxes 20px, inputs/buttons/nested 12px, chips and tabs pill. */
+  --radius-box: 20px;
+  --radius-inner: 12px;
+  --radius-sm: 12px;
+  --radius-md: 12px;
+
+  /* Layout breakpoints from the spec: 6 columns from 700px, 12 columns from 1100px. */
+  --breakpoint-tab: 700px;
+  --breakpoint-desk: 1100px;
 }
 
 @layer base {
   html {
-    font-size: 15.5px;
+    font-size: 15px;
   }
 
   body {
     background: var(--bg);
-    color: var(--ink);
+    color: var(--text);
     font-family: var(--font-sans);
-    line-height: 1.55;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--font-serif);
-    font-weight: 500;
-    line-height: 1.2;
-    letter-spacing: -0.005em;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 1px;
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
   }
 
   .tnum {
@@ -73,15 +109,78 @@
   }
 
   a {
-    color: var(--accent);
+    color: var(--lime);
+  }
+
+  ::selection {
+    background: var(--lime);
+    color: var(--on-lime);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
   }
 }
 
-/* React Flow: keep the map plain (no translucent attribution panel). */
+/* React Flow: flat, dark, no translucent attribution panel. */
 .react-flow .react-flow__attribution {
-  background: var(--surface);
+  background: var(--card);
   font-size: 10px;
 }
 .react-flow .react-flow__attribution a {
-  color: var(--ink-2);
+  color: var(--text-2);
+}
+.react-flow__pane,
+.react-flow__renderer {
+  background: transparent;
+}
+
+/* Dashboard bento grid (UI_SPEC 2.3). Areas: a session, b understanding,
+   c revisit, d stats, e gap map, f apply it, g notes. */
+.bento {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "a" "b" "c" "d" "e" "f" "g";
+}
+.bento > .area-a { grid-area: a; min-height: 560px; }
+.bento > .area-b { grid-area: b; }
+.bento > .area-c { grid-area: c; }
+.bento > .area-d { grid-area: d; }
+.bento > .area-e { grid-area: e; min-height: 260px; }
+.bento > .area-f { grid-area: f; }
+.bento > .area-g { grid-area: g; }
+
+@media (min-width: 700px) {
+  .bento {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "a a a a a a"
+      "b b b c c c"
+      "d d f f f f"
+      "e e e g g g";
+    grid-auto-rows: minmax(260px, auto);
+  }
+  .bento > .area-a { height: 600px; }
+}
+
+@media (min-width: 1100px) {
+  .bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: minmax(280px, 1fr) minmax(240px, 1fr) minmax(200px, 0.8fr);
+    grid-template-areas:
+      "a a a a a a a b b b b b"
+      "a a a a a a a c c c d d"
+      "e e e e f f f f g g g g";
+    /* 72px top bar + 48px vertical padding. */
+    min-height: calc(100vh - 120px);
+  }
+  .bento > .area-a { height: auto; min-height: 0; }
+  .bento > .area-e { min-height: 0; }
+}
+
+/* On the lime welcome screen the lime focus ring would be invisible. */
+.welcome :focus-visible {
+  outline-color: var(--on-lime);
 }

@@ -6,18 +6,18 @@ import type {
 } from "react";
 
 export const inputClass =
-  "w-full rounded-sm border border-line bg-surface px-3 text-[15px] text-ink placeholder:text-ink-2/70 transition-colors duration-150";
+  "w-full rounded-[12px] border border-line bg-card-2 px-3 text-[14px] text-text placeholder:text-text-3 transition-colors duration-150 hover:border-text-3";
 
 export function Label({ htmlFor, children }: { htmlFor: string; children: ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-ink-2">
+    <label htmlFor={htmlFor} className="mb-1 block text-[13px] font-medium text-text-2">
       {children}
     </label>
   );
 }
 
 export function TextInput({ className = "", ...rest }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={`${inputClass} h-9 ${className}`} {...rest} />;
+  return <input className={`${inputClass} h-10 ${className}`} {...rest} />;
 }
 
 export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -26,7 +26,7 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
 
 export function Select({ className = "", children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={`${inputClass} h-9 pr-8 ${className}`} {...rest}>
+    <select className={`${inputClass} h-10 pr-8 ${className}`} {...rest}>
       {children}
     </select>
   );

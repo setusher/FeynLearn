@@ -1,7 +1,6 @@
 "use client";
 
 import "@xyflow/react/dist/base.css";
-import { Graph, layout } from "@dagrejs/dagre";
 import {
   Handle,
   MarkerType,
@@ -15,6 +14,7 @@ import {
 } from "@xyflow/react";
 import { useEffect, useMemo } from "react";
 import { STATUS_LABEL } from "@/lib/graph";
+import { layoutConcepts } from "@/lib/graphLayout";
 import type { Concept, ConceptStatus } from "@/lib/types";
 
 const NODE_W = 230;
@@ -55,20 +55,8 @@ function ConceptNode({ data }: NodeProps<ConceptNodeType>) {
 
 const nodeTypes = { concept: ConceptNode };
 
-/** Layered top-to-bottom layout: foundations at the top, dependent ideas below them. */
-function layoutGraph(concepts: Concept[]): Map<string, { x: number; y: number }> {
-  const g = new Graph();
-  g.setGraph({ rankdir: "TB", nodesep: 20, ranksep: 44, marginx: 10, marginy: 10 });
-  g.setDefaultEdgeLabel(() => ({}));
-  for (const c of concepts) g.setNode(c.id, { width: NODE_W, height: NODE_H });
-  for (const c of concepts) for (const dep of c.dependsOn) g.setEdge(dep, c.id);
-  layout(g);
-  const pos = new Map<string, { x: number; y: number }>();
-  for (const c of concepts) {
-    const n = g.node(c.id);
-    pos.set(c.id, { x: n.x - NODE_W / 2, y: n.y - NODE_H / 2 });
-  }
-  return pos;
+function layoutGraph(concepts: Concept[]) {
+  return layoutConcepts(concepts, { width: NODE_W, height: NODE_H });
 }
 
 type Props = {
@@ -97,7 +85,7 @@ function Inner({ concepts, changes, selectedId, onSelect }: Props) {
       target: c.id,
       type: "smoothstep",
       style: { stroke: "var(--ink-2)", strokeWidth: 1 },
-      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#5c5a52" },
+      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#9A9A9F" },
     })),
   );
 

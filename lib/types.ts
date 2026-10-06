@@ -14,6 +14,8 @@ export type Topic = {
   latestScore?: number;
   /** Last revisit angle used, so the next revisit can rotate to a different one. */
   lastAngle?: RevisitAngle;
+  /** Demo data loaded by "Load demo data" or on first run; shown with a "Sample data" chip. */
+  sample?: boolean;
 };
 
 export type Concept = {
@@ -90,7 +92,16 @@ export type Challenge = {
   createdAt: number;
 };
 
-export type Note = { id: string; title: string; text: string; createdAt: number };
+export type Note = { id: string; title: string; text: string; createdAt: number; sample?: boolean };
+
+/** Single settings row stored under key "app". */
+export type Settings = {
+  key: "app";
+  name?: string;
+  theme: "dark";
+  /** True once demo data has been auto-loaded, so it is not loaded again after "Clear all data". */
+  seeded: boolean;
+};
 
 export type RevisitAngle = "persona" | "analogy" | "apply" | "reverse";
 

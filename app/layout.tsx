@@ -1,31 +1,26 @@
-import type { Metadata } from "next";
-import { IBM_Plex_Sans, Newsreader } from "next/font/google";
-import { AppShell } from "@/components/shell/AppShell";
+import type { Metadata, Viewport } from "next";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 
-const plex = IBM_Plex_Sans({
-  variable: "--font-plex",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "FeynLearn",
-  description: "Learn a concept by teaching it. Find the gaps, connect the ideas, apply them.",
+  description: "Learn it by teaching it. Explain a concept, catch the mistakes, apply it.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B0B0C",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${plex.variable} ${newsreader.variable}`}>
-      <body>
-        <AppShell>{children}</AppShell>
-      </body>
+    <html lang="en" className={manrope.variable}>
+      <body>{children}</body>
     </html>
   );
 }

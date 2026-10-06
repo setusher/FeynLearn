@@ -27,7 +27,7 @@ export function SegmentedToggle<T extends string>({ label, options, value, onCha
   }
 
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-sm border border-accent">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-[12px] border border-line bg-card-2 p-1">
       {options.map((opt, i) => {
         const active = opt.value === value;
         return (
@@ -42,9 +42,9 @@ export function SegmentedToggle<T extends string>({ label, options, value, onCha
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(opt.value)}
             onKeyDown={(e) => onKeyDown(e, i)}
-            className={`h-9 px-4 text-sm font-medium transition-colors duration-150 ${
-              i > 0 ? "border-l border-accent" : ""
-            } ${active ? "bg-accent text-white" : "bg-surface text-ink hover:bg-bg"}`}
+            className={`h-8 rounded-[9px] px-3.5 text-[13px] font-semibold transition-colors duration-150 ${
+              active ? "bg-lime text-on-lime" : "text-text-2 hover:text-text"
+            }`}
           >
             {opt.label}
           </button>

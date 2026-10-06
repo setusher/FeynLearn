@@ -1,9 +1,10 @@
 import { db, newId } from "./db";
 import { topicScore } from "./score";
-import type { Challenge, Concept, ConceptStatus, Session, Topic } from "./types";
+import type { Challenge, Concept, ConceptStatus, Note, Session, Topic } from "./types";
 
-// Sample data so the dashboard, Gap map and charts look populated on first run.
-// Removable via Settings > Clear all data.
+// Demo data so every dashboard box has content on first run. Loaded automatically
+// once, or on request via Settings > Load demo data. Every topic and note is marked
+// `sample: true` and shown with a "Sample data" chip. Removable via Clear all data.
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
@@ -29,15 +30,15 @@ function concepts(
 
 export async function seedSampleData(now: number = Date.now()): Promise<void> {
   const seasonsId = newId();
-  const vaccinesId = newId();
+  const interestId = newId();
 
   const first: Session = {
     id: newId(),
     topicId: seasonsId,
     mode: "explain",
     persona: "child",
-    startedAt: now - 6 * DAY,
-    endedAt: now - 6 * DAY + 14 * 60 * 1000,
+    startedAt: now - 9 * DAY,
+    endedAt: now - 9 * DAY + 14 * 60 * 1000,
     messages: [
       { role: "user", text: "Seasons happen because the Earth goes around the Sun, and in summer we are closer to it so it gets hotter." },
       {
@@ -150,62 +151,124 @@ export async function seedSampleData(now: number = Date.now()): Promise<void> {
       "Priya is right. In July the Southern Hemisphere tilts away from the Sun, so Melbourne gets low-angle sunlight and short days, meaning less energy per area: it is winter. Late January to February is warmest, since ocean temperatures lag the solstice.",
   };
 
-  const vaccines: Session = {
+  const interest: Session = {
     id: newId(),
-    topicId: vaccinesId,
+    topicId: interestId,
     mode: "explain",
-    persona: "professor",
-    startedAt: now - 4 * DAY,
-    endedAt: now - 4 * DAY + 12 * 60 * 1000,
+    persona: "friend",
+    startedAt: now - 5 * DAY,
+    endedAt: now - 5 * DAY + 11 * 60 * 1000,
     messages: [
-      { role: "user", text: "A vaccine shows your immune system a harmless version of a germ so it learns to recognise it." },
-      { role: "ai", text: "Define \"learns\". What physically changes in the body?" },
-      { role: "user", text: "It makes antibodies and memory cells that stay around, so next time the response is faster." },
+      { role: "user", text: "Compound interest is when the bank pays you interest, and the interest is always worked out on the money you first put in." },
+      {
+        role: "ai",
+        text: "So if I leave 1,000 in for ten years, every year I get exactly the same amount added?",
+        misconception: {
+          name: "Interest only on the original amount",
+          correction: "That describes simple interest; compound interest is also paid on interest already earned, so each year's interest grows.",
+        },
+      },
+      { role: "user", text: "Oh, no. The interest gets added to the balance, so next year you earn interest on the interest too. That's why it grows faster over time." },
+      { role: "ai", text: "Faster how? Does it matter how often they add the interest?" },
+      { role: "user", text: "I think compounding monthly gives a bit more than yearly, but I'm not sure why." },
     ],
     concepts: [
-      { id: "antigen", label: "Vaccines present an antigen", status: "solid", evidence: "\"a harmless version of a germ\"", note: "Correct idea, informal wording.", dependsOn: [] },
-      { id: "b-cells", label: "B cells produce antibodies", status: "shaky", evidence: "\"It makes antibodies\"", note: "Does not say which cells make them.", dependsOn: ["antigen"] },
-      { id: "memory", label: "Memory cells persist", status: "solid", evidence: "\"memory cells that stay around\"", note: "Clear.", dependsOn: ["b-cells"] },
-      { id: "secondary", label: "Secondary response is faster and stronger", status: "solid", evidence: "\"next time the response is faster\"", note: "Correct.", dependsOn: ["memory"] },
-      { id: "t-cells", label: "T cells also play a role", status: "missing", evidence: "not mentioned", note: "No mention of T cells.", dependsOn: ["antigen"] },
+      { id: "principal", label: "Interest is a percentage of a balance", status: "solid", evidence: "\"the bank pays you interest\"", note: "Clear on the basic idea.", dependsOn: [] },
+      { id: "reinvest", label: "Earned interest is added to the balance", status: "solid", evidence: "\"The interest gets added to the balance\"", note: "Stated after the learner's question.", dependsOn: ["principal"] },
+      { id: "interest-on-interest", label: "Later interest is earned on past interest", status: "solid", evidence: "\"you earn interest on the interest too\"", note: "Corrected the simple-interest idea.", dependsOn: ["reinvest"] },
+      { id: "frequency", label: "More frequent compounding grows slightly faster", status: "shaky", evidence: "\"monthly gives a bit more than yearly, but I'm not sure why\"", note: "Right direction, no reason given.", dependsOn: ["interest-on-interest"] },
+      { id: "exponential", label: "Growth accelerates over long periods", status: "shaky", evidence: "\"it grows faster over time\"", note: "Hinted at, not explained.", dependsOn: ["interest-on-interest"] },
+      { id: "formula", label: "A = P(1 + r/n)^(nt) models the balance", status: "missing", evidence: "not mentioned", note: "No formula or worked numbers.", dependsOn: ["frequency"] },
+      { id: "time", label: "Time matters more than the starting amount", status: "missing", evidence: "not mentioned", note: "The role of starting early was not discussed.", dependsOn: ["exponential"] },
     ],
-    summary: "Good core picture of antibodies and memory. T cells were not mentioned and the role of B cells was implied, not stated.",
-    misconceptions: [],
-    coverage: 64,
+    summary: "You corrected the simple-interest mix-up and explained interest on interest clearly. Why compounding frequency matters, and how time drives the growth, are still vague.",
+    misconceptions: [
+      { name: "Interest only on the original amount", correction: "Compound interest is also paid on interest already earned." },
+    ],
+    coverage: 57,
     accuracy: 85,
+  };
+
+  const note: Note = {
+    id: newId(),
+    title: "Finance 101: compound interest",
+    sample: true,
+    createdAt: now - 6 * DAY,
+    text: [
+      "Compound interest",
+      "Simple interest is paid only on the principal (the original deposit). Compound interest is paid on the principal plus all interest already added to the account.",
+      "Formula: A = P(1 + r/n)^(nt), where P is the principal, r the annual rate as a decimal, n the number of compounding periods per year and t the number of years.",
+      "Example: 1,000 at 5% compounded yearly for 10 years gives 1,628.89. With simple interest it would be 1,500.",
+      "More frequent compounding (monthly, daily) gives slightly more, because each period's interest starts earning sooner. The effect is small compared with the rate and the time.",
+      "Rule of 72: divide 72 by the interest rate in percent to estimate the years needed to double. At 6%, money doubles in about 12 years.",
+      "Time is the strongest factor: starting ten years earlier can matter more than saving twice as much each month.",
+    ].join("\n\n"),
   };
 
   const seasonsSessions = [first, second, reverse];
   const seasons: Topic = {
     id: seasonsId,
     name: "Why do seasons happen?",
-    createdAt: now - 6 * DAY,
+    createdAt: now - 9 * DAY,
     intervalDays: 1,
     ease: 2.36,
     nextReview: now - 2 * HOUR,
     latestScore: topicScore(seasonsSessions, [challenge]) ?? undefined,
     lastAngle: "reverse",
+    sample: true,
   };
-  const vaccinesTopic: Topic = {
-    id: vaccinesId,
-    name: "How vaccines train the immune system",
-    createdAt: now - 4 * DAY,
+  const interestTopic: Topic = {
+    id: interestId,
+    name: "How does compound interest work?",
+    createdAt: now - 6 * DAY,
+    noteId: note.id,
     intervalDays: 3,
     ease: 2.5,
-    nextReview: now + 1 * DAY,
-    latestScore: topicScore([vaccines], []) ?? undefined,
+    nextReview: now + 2 * DAY,
+    latestScore: topicScore([interest], []) ?? undefined,
     lastAngle: "persona",
+    sample: true,
   };
 
   // Per-session score snapshots for the Understanding chart.
   first.score = topicScore([first], []) ?? undefined;
   second.score = topicScore([first, second], []) ?? undefined;
   reverse.score = topicScore([first, second, reverse], []) ?? undefined;
-  vaccines.score = vaccinesTopic.latestScore;
+  interest.score = interestTopic.latestScore;
 
-  await db.transaction("rw", [db.topics, db.sessions, db.challenges], async () => {
-    await db.topics.bulkAdd([seasons, vaccinesTopic]);
-    await db.sessions.bulkAdd([first, second, reverse, vaccines]);
+  await db.transaction("rw", [db.topics, db.sessions, db.challenges, db.notes, db.settings], async () => {
+    await removeSampleData();
+    await db.topics.bulkAdd([seasons, interestTopic]);
+    await db.sessions.bulkAdd([first, second, reverse, interest]);
     await db.challenges.add(challenge);
+    await db.notes.add(note);
+    const settings = await db.settings.get("app");
+    await db.settings.put({ key: "app", theme: "dark", name: settings?.name, seeded: true });
   });
+}
+
+/** Delete earlier demo topics (with their sessions and challenges) and demo notes. */
+async function removeSampleData(): Promise<void> {
+  const ids = (await db.topics.filter((t) => t.sample === true).toArray()).map((t) => t.id);
+  if (ids.length) {
+    await db.sessions.where("topicId").anyOf(ids).delete();
+    await db.challenges.where("topicId").anyOf(ids).delete();
+    await db.topics.bulkDelete(ids);
+  }
+  await db.notes.filter((n) => n.sample === true).delete();
+}
+
+/**
+ * Load demo data once, the first time the app opens with an empty database.
+ * Returns true if it seeded.
+ */
+export async function autoSeed(): Promise<boolean> {
+  const settings = await db.settings.get("app");
+  if (settings?.seeded) return false;
+  if ((await db.topics.count()) > 0) {
+    await db.settings.put({ key: "app", theme: "dark", name: settings?.name, seeded: true });
+    return false;
+  }
+  await seedSampleData();
+  return true;
 }

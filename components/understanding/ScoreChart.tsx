@@ -17,9 +17,9 @@ import type { HistoryPoint } from "@/lib/history";
 // Flat line chart: 2px line, 8px dots, hairline solid gridlines, hover crosshair.
 // Single series per view, so no legend; the topic select names it.
 
-const ACCENT = "#1F3A5F";
-const LINE = "#DDD9CE";
-const INK_2 = "#5C5A52";
+const ACCENT = "#C6F432";
+const LINE = "#2A2A2D";
+const INK_2 = "#9A9A9F";
 
 function ChartTooltip({ active, payload }: TooltipContentProps<ValueType, string | number>) {
   if (!active || !payload?.length) return null;
@@ -69,8 +69,8 @@ export default function ScoreChart({ points, label }: { points: HistoryPoint[]; 
               strokeLinecap="round"
               strokeLinejoin="round"
               isAnimationActive={false}
-              dot={{ r: 4, fill: ACCENT, stroke: "#FFFFFF", strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: ACCENT, stroke: "#FFFFFF", strokeWidth: 2 }}
+              dot={{ r: 4, fill: ACCENT, stroke: "#151516", strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: ACCENT, stroke: "#151516", strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
