@@ -54,7 +54,7 @@ export function ApplyBox({ data }: { data: DashData }) {
         </p>
       )}
       <div className="mt-auto flex flex-wrap gap-2">
-        <Link href={href} className={buttonClass("primary", "h-9")}>New scenario</Link>
+        <Link href={`${href}${href.includes("?") ? "&" : "?"}new=1`} className={buttonClass("primary", "h-9")}>New scenario</Link>
         <Link href={href} className={buttonClass("secondary", "h-9")}>Open</Link>
       </div>
     </Box>

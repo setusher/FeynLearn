@@ -20,7 +20,7 @@ import { RubricBars } from "./RubricBars";
 
 const NEW_TOPIC = "__new__";
 
-export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: string }) {
+export function ApplyIt({ topicParam, focus, autoNew }: { topicParam?: string; focus?: string; autoNew?: boolean }) {
   const data = useAllData();
   const router = useRouter();
   const setCurrentTopic = useUI((s) => s.setCurrentTopic);
@@ -31,6 +31,7 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   const [busy, setBusy] = useState<"generating" | "grading" | null>(null);
   const [error, setError] = useState<{ message: string; retry: () => void } | null>(null);
   const voiceBase = useRef("");
+  const autoStarted = useRef(false);
   const voice = useSpeechInput((finalText, interim) => {
     const spoken = `${finalText}${interim}`.trim();
     setAnswer(`${voiceBase.current}${voiceBase.current && spoken ? " " : ""}${spoken}`.slice(0, 4000));
@@ -46,6 +47,15 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
   useEffect(() => {
     if (topic) setCurrentTopic(topic.name);
   }, [topic, setCurrentTopic]);
+
+  // "New scenario" from the dashboard: write one as soon as the topic is known.
+  const loaded = Boolean(data);
+  useEffect(() => {
+    if (!autoNew || !loaded || autoStarted.current) return;
+    autoStarted.current = true;
+    router.replace(topicParam ? `/apply?topic=${encodeURIComponent(topicParam)}` : "/apply");
+    window.setTimeout(() => document.getElementById("apply-generate")?.click(), 0);
+  }, [autoNew, loaded, router, topicParam]);
 
   if (!data) return <Working />;
 
@@ -146,7 +156,7 @@ export function ApplyIt({ topicParam, focus }: { topicParam?: string; focus?: st
               ))}
               <option value={NEW_TOPIC}>New topic...</option>
             </select>
-            <Button className="h-8 px-3 text-[12px]" onClick={generate} disabled={busy !== null}>
+            <Button id="apply-generate" className="h-8 px-3 text-[12px]" onClick={generate} disabled={busy !== null}>
               {busy === "generating" ? "Writing..." : current ? "New scenario" : "Generate scenario"}
             </Button>
           </>
