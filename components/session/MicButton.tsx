@@ -21,11 +21,11 @@ export function MicButton({
       disabled={disabled}
       aria-pressed={listening}
       aria-label={listening ? "Stop voice input" : "Start voice input"}
-      className={`inline-flex h-9 items-center gap-2 rounded-sm border px-3 text-sm font-medium transition-colors duration-150 disabled:opacity-50 ${
-        listening ? "border-missing bg-tint-missing text-ink" : "border-line bg-surface hover:bg-bg"
+      className={`inline-flex h-10 items-center gap-2 rounded-[12px] border px-3 text-[13px] font-semibold transition-colors duration-150 disabled:opacity-50 ${
+        listening ? "border-missing bg-tint-missing text-text" : "border-line bg-card text-text hover:border-text-3"
       }`}
     >
-      <Mic size={16} strokeWidth={1.5} aria-hidden />
+      <Mic size={16} strokeWidth={1.75} aria-hidden />
       {listening ? "Stop" : "Mic"}
     </button>
   );

@@ -6,7 +6,7 @@ import { LIMITS } from "@/lib/limits";
 import { useSpeechInput } from "@/lib/speech";
 import { MicButton } from "./MicButton";
 
-/** Message input docked under the transcript, in normal page flow. */
+/** Message input docked at the bottom of the Session box: textarea, mic, send. */
 export function Composer({
   disabled,
   onSend,
@@ -41,18 +41,18 @@ export function Composer({
   }
 
   return (
-    <form onSubmit={submit} className="mt-4">
+    <form onSubmit={submit} className="shrink-0 border-t border-line pt-3">
       <label htmlFor="composer" className="sr-only">Your explanation</label>
-      <div className="flex items-end gap-2 rounded-sm border border-line bg-surface p-2 focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent">
+      <div className="flex items-end gap-2 rounded-[12px] border border-line bg-card-2 p-2 transition-colors duration-150 focus-within:border-lime">
         <textarea
           id="composer"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
-          rows={3}
+          rows={2}
           maxLength={LIMITS.message}
           placeholder="Explain in your own words..."
-          className="min-h-[72px] flex-1 resize-y bg-transparent px-2 py-1 text-[15px] leading-normal outline-none focus-visible:outline-none"
+          className="max-h-40 min-h-[48px] flex-1 resize-none bg-transparent px-2 py-1.5 text-[15px] leading-normal text-text placeholder:text-text-3 outline-none focus-visible:outline-none"
         />
         {voice.supported && (
           <MicButton
@@ -67,11 +67,11 @@ export function Composer({
         )}
         <Button type="submit" disabled={disabled || !text.trim()}>Send</Button>
       </div>
-      <p className="mt-1 text-xs text-ink-2">
+      <p className="mt-1.5 text-[12px] text-text-2">
         {voice.listening ? "Listening. Press Stop when you are done." : "Enter to send, Shift+Enter for a new line."}
         {hint ? ` ${hint}` : ""}
       </p>
-      {voice.error && <p className="mt-1 text-sm text-missing" role="alert">{voice.error}</p>}
+      {voice.error && <p className="mt-1 text-[13px] text-missing" role="alert">{voice.error}</p>}
     </form>
   );
 }
