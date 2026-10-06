@@ -51,8 +51,6 @@ export function Box({
       <div
         className={`flex min-h-0 flex-1 flex-col ${bodyClassName}`}
         tabIndex={/overflow-(y-)?auto/.test(bodyClassName) ? 0 : undefined}
-        role={/overflow-(y-)?auto/.test(bodyClassName) ? "region" : undefined}
-        aria-labelledby={/overflow-(y-)?auto/.test(bodyClassName) ? `${id}-title` : undefined}
       >
         {children}
       </div>
