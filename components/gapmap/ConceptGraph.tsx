@@ -21,9 +21,9 @@ const NODE_W = 230;
 const NODE_H = 76;
 
 export const STATUS_COLOR: Record<ConceptStatus, string> = {
-  solid: "var(--status-solid)",
-  shaky: "var(--status-shaky)",
-  missing: "var(--status-missing)",
+  solid: "var(--solid)",
+  shaky: "var(--shaky)",
+  missing: "var(--missing)",
 };
 
 type ConceptNodeData = {
@@ -37,15 +37,15 @@ type ConceptNodeType = Node<ConceptNodeData, "concept">;
 function ConceptNode({ data }: NodeProps<ConceptNodeType>) {
   return (
     <div
-      className={`flex h-[76px] w-[230px] cursor-pointer flex-col justify-center gap-1 rounded-sm border bg-surface px-3 text-left transition-colors duration-150 ${
-        data.selected ? "border-accent outline-2 outline-accent" : "border-line hover:border-ink-2"
+      className={`flex h-[76px] w-[230px] cursor-pointer flex-col justify-center gap-1 rounded-[12px] border bg-card-2 px-3 text-left transition-colors duration-150 ${
+        data.selected ? "border-lime" : "border-line hover:border-text-3"
       }`}
     >
       <Handle type="target" position={Position.Top} className="!h-1 !w-1 !min-w-0 !border-0 !bg-transparent" />
-      <p className="line-clamp-2 text-[13px] leading-snug text-ink">{data.label}</p>
-      <p className="flex items-center gap-1.5 text-xs text-ink-2">
-        <span aria-hidden className="inline-block h-2.5 w-2.5" style={{ background: STATUS_COLOR[data.status] }} />
-        <span className="font-medium text-ink">{STATUS_LABEL[data.status]}</span>
+      <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-text">{data.label}</p>
+      <p className="flex items-center gap-1.5 text-[12px] text-text-2">
+        <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: STATUS_COLOR[data.status] }} />
+        <span className="font-semibold text-text">{STATUS_LABEL[data.status]}</span>
         {data.change && <span>{data.change}</span>}
       </p>
       <Handle type="source" position={Position.Bottom} className="!h-1 !w-1 !min-w-0 !border-0 !bg-transparent" />
@@ -84,7 +84,7 @@ function Inner({ concepts, changes, selectedId, onSelect }: Props) {
       source: dep,
       target: c.id,
       type: "smoothstep",
-      style: { stroke: "var(--ink-2)", strokeWidth: 1 },
+      style: { stroke: "var(--text-3)", strokeWidth: 1.25 },
       markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#9A9A9F" },
     })),
   );
@@ -96,16 +96,16 @@ function Inner({ concepts, changes, selectedId, onSelect }: Props) {
   }, [flow, ids]);
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between gap-3 text-sm text-ink-2">
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="flex shrink-0 items-center justify-between gap-3 text-[13px] text-text-2">
         <p>Arrows point from a foundation down to the ideas that build on it.</p>
-        <div className="flex shrink-0 rounded-sm border border-line bg-surface">
-          <button type="button" className="h-8 w-8 hover:bg-bg" onClick={() => void flow.zoomIn()} aria-label="Zoom in">+</button>
-          <button type="button" className="h-8 w-8 border-l border-line hover:bg-bg" onClick={() => void flow.zoomOut()} aria-label="Zoom out">-</button>
-          <button type="button" className="h-8 border-l border-line px-2 hover:bg-bg" onClick={() => void flow.fitView({ padding: 0.08, maxZoom: 1 })}>Fit</button>
+        <div className="flex shrink-0 overflow-hidden rounded-[10px] border border-line bg-card-2 text-text">
+          <button type="button" className="h-8 w-8 hover:bg-card" onClick={() => void flow.zoomIn()} aria-label="Zoom in">+</button>
+          <button type="button" className="h-8 w-8 border-l border-line hover:bg-card" onClick={() => void flow.zoomOut()} aria-label="Zoom out">-</button>
+          <button type="button" className="h-8 border-l border-line px-2 text-[12px] font-semibold hover:bg-card" onClick={() => void flow.fitView({ padding: 0.08, maxZoom: 1 })}>Fit</button>
         </div>
       </div>
-      <div className="h-[380px] rounded-sm border sm:h-[500px] border-line bg-surface">
+      <div className="min-h-[340px] flex-1 rounded-[12px] border border-line bg-bg">
         <ReactFlow
           nodes={nodes}
           edges={edges}
