@@ -1,13 +1,9 @@
 import { Settings } from "@/components/settings/Settings";
-import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function SettingsPage() {
   return (
-    <div className="max-w-[1100px]">
-      <PageHeader
-        title="Settings"
-        intro="Everything you do in FeynLearn is stored in this browser only."
-      />
+    <div className="mx-auto max-w-[1100px]">
+      <h1 className="sr-only">Settings</h1>
       <Settings />
     </div>
   );
