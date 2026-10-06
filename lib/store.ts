@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { PersonaId } from "./personas";
-import type { Mode } from "./types";
+import type { Difficulty, Mode } from "./types";
 
 // UI/session state that does not need to survive a refresh.
 // Anything that must persist goes to IndexedDB (lib/db.ts).
@@ -16,6 +16,8 @@ type UIState = {
   setDraftMode: (mode: Mode) => void;
   draftPersona: PersonaId;
   setDraftPersona: (persona: PersonaId) => void;
+  draftDifficulty: Difficulty;
+  setDraftDifficulty: (difficulty: Difficulty) => void;
 };
 
 export const useUI = create<UIState>((set) => ({
@@ -27,4 +29,6 @@ export const useUI = create<UIState>((set) => ({
   setDraftMode: (draftMode) => set({ draftMode }),
   draftPersona: "child",
   setDraftPersona: (draftPersona) => set({ draftPersona }),
+  draftDifficulty: "moderate",
+  setDraftDifficulty: (draftDifficulty) => set({ draftDifficulty }),
 }));
