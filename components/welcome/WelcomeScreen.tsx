@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ensureSeeded } from "@/components/shell/FirstRunGate";
 import { updateSettings, useSettings } from "@/lib/settings";
 import { FitWordmark } from "./FitWordmark";
@@ -20,11 +20,17 @@ export function WelcomeScreen() {
   const [draft, setDraft] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const input = useRef<HTMLInputElement>(null);
 
   const savedName = settings?.name ?? "";
   const returning = savedName.length > 0;
   const name = draft ?? savedName;
   const clean = name.trim().slice(0, 40);
+
+  // First visit: focus the name box once settings have loaded.
+  useEffect(() => {
+    if (settings && !settings.name) input.current?.focus();
+  }, [settings]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,9 +47,9 @@ export function WelcomeScreen() {
   }
 
   return (
-    <main className="flex min-h-[100dvh] flex-col bg-bg px-5 text-lime tab:px-12">
+    <main className="flex min-h-[100dvh] flex-col bg-bg px-[20px] text-lime tab:px-[48px]">
       {/* Zone 1: top row */}
-      <div className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line">
+      <div className="flex h-[64px] shrink-0 items-center justify-between gap-4 border-b border-line">
         <span className="flex items-center gap-2.5">
           <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] bg-lime text-[15px] font-bold text-on-lime">
             F
@@ -79,7 +85,7 @@ export function WelcomeScreen() {
               }}
               maxLength={40}
               autoComplete="given-name"
-              autoFocus={settings !== undefined && !returning}
+              ref={input}
               aria-describedby="welcome-sub"
               placeholder="Your name"
               className="h-14 w-full min-w-0 rounded-[12px] border border-line bg-card px-4 text-[18px] text-text placeholder:text-text-2 transition-colors duration-150 focus:border-2 focus:border-lime focus:px-[15px] tab:max-w-[560px] tab:flex-1"
@@ -119,8 +125,8 @@ export function WelcomeScreen() {
       </div>
 
       {/* Zone 3: tagline and the full-width wordmark */}
-      <div className="shrink-0 pb-6">
-        <p className="mb-2 text-[22px] font-medium text-lime">Learn it by teaching it.</p>
+      <div className="shrink-0 pb-[24px]">
+        <p className="mb-[8px] text-[22px] font-medium text-lime">Learn it by teaching it.</p>
         <FitWordmark text="FeynLearn" className="text-lime" />
       </div>
     </main>
