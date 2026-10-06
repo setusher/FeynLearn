@@ -21,6 +21,7 @@ export function Bento() {
 
   return (
     <div className="bento">
+      <h1 className="sr-only">Dashboard</h1>
       <SessionBox data={d} name={settings?.name} />
       <UnderstandingBox data={d} />
       <RevisitBox data={d} />
