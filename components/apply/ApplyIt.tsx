@@ -38,10 +38,11 @@ export function ApplyIt({ topicParam, focus, autoNew }: { topicParam?: string; f
   });
 
   const topics = data ? [...data.topics].sort((a, b) => a.name.localeCompare(b.name)) : [];
-  // Default to the topic in focus (top bar), then the most recently created one.
+  // Default to the topic in focus, then the topic with the latest challenge, then the newest topic.
   const inFocus = topics.find((t) => t.name.toLowerCase() === currentTopic.trim().toLowerCase());
+  const latestChallenge = data ? [...data.challenges].sort((a, b) => b.createdAt - a.createdAt)[0] : undefined;
   const newest = [...topics].sort((a, b) => b.createdAt - a.createdAt)[0];
-  const selectedId = choice ?? inFocus?.id ?? newest?.id ?? NEW_TOPIC;
+  const selectedId = choice ?? inFocus?.id ?? latestChallenge?.topicId ?? newest?.id ?? NEW_TOPIC;
   const topic = topics.find((t) => t.id === selectedId);
 
   useEffect(() => {
@@ -193,6 +194,11 @@ export function ApplyIt({ topicParam, focus, autoNew }: { topicParam?: string; f
               the concept, sound reasoning, and seeing its limits.
             </p>
             <Button className="self-start" onClick={generate}>Generate scenario</Button>
+            <ul className="mt-2 flex flex-col gap-2 border-t border-line pt-3 text-[13px] text-text-2">
+              <li><span className="font-semibold text-text">Name the idea.</span> Say which concept explains what is happening.</li>
+              <li><span className="font-semibold text-text">Walk the steps.</span> Go from cause to effect, using the numbers given.</li>
+              <li><span className="font-semibold text-text">Say where it stops working.</span> An assumption, a limit or an exception earns the third point.</li>
+            </ul>
           </div>
         ) : (
           <>
