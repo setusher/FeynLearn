@@ -47,7 +47,15 @@ export function Box({
           )}
         </div>
       </header>
-      <div className={`flex min-h-0 flex-1 flex-col ${bodyClassName}`}>{children}</div>
+      {/* A body that scrolls is focusable so keyboard users can scroll it. */}
+      <div
+        className={`flex min-h-0 flex-1 flex-col ${bodyClassName}`}
+        tabIndex={/overflow-(y-)?auto/.test(bodyClassName) ? 0 : undefined}
+        role={/overflow-(y-)?auto/.test(bodyClassName) ? "region" : undefined}
+        aria-labelledby={/overflow-(y-)?auto/.test(bodyClassName) ? `${id}-title` : undefined}
+      >
+        {children}
+      </div>
     </section>
   );
 }

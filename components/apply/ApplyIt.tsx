@@ -207,7 +207,7 @@ export function ApplyIt({ topicParam, focus, autoNew }: { topicParam?: string; f
                 <span>Scenario</span>
                 <span className="tnum font-semibold normal-case tracking-normal">{formatDate(current.createdAt)}</span>
               </p>
-              <p className="mt-1.5 max-h-48 overflow-y-auto text-[15px] leading-relaxed">{current.scenario}</p>
+              <p tabIndex={0} aria-label="Scenario text" className="mt-1.5 max-h-48 overflow-y-auto text-[15px] leading-relaxed">{current.scenario}</p>
             </div>
             {current.rubric ? (
               <div className="flex min-h-0 flex-1 flex-col gap-2">
