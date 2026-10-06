@@ -89,7 +89,7 @@ export function WelcomeScreen() {
         <p className="text-[18px] font-semibold tab:text-[22px]">Learn it by teaching it.</p>
         <p
           aria-hidden
-          className="font-bold leading-[0.85] tracking-[-0.045em]"
+          className="pb-[0.12em] font-bold leading-[0.85] tracking-[-0.045em]"
           style={{ fontSize: "clamp(72px, 15vw, 200px)" }}
         >
           FeynLearn

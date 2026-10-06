@@ -1,5 +1,5 @@
-import { Dashboard } from "@/components/dashboard/Dashboard";
+import { Bento } from "@/components/bento/Bento";
 
-export default function HomePage() {
-  return <Dashboard />;
+export default function DashboardPage() {
+  return <Bento />;
 }

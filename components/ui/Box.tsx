@@ -30,7 +30,7 @@ export function Box({
       aria-labelledby={`${id}-title`}
       className={`group flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[20px] border border-line bg-card p-5 transition-colors duration-150 hover:border-text-3 focus-within:border-text-3 ${className}`}
     >
-      <header className="mb-3 flex min-h-8 items-center justify-between gap-3">
+      <header className="mb-3 flex min-h-8 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <h2 id={`${id}-title`} className="truncate text-[14px] font-semibold text-text">
           {title}
         </h2>

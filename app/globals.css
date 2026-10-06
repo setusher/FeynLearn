@@ -173,8 +173,10 @@
       "a a a a a a a b b b b b"
       "a a a a a a a c c c d d"
       "e e e e f f f f g g g g";
-    /* 72px top bar + 48px vertical padding. */
-    min-height: calc(100vh - 120px);
+    /* Fixed height so the 1fr rows split the viewport instead of growing with content:
+       73px top bar (72 + border) + 48px padding. 752px floor keeps the row minimums. */
+    height: calc(100vh - 121px);
+    min-height: 752px;
   }
   .bento > .area-a { height: auto; min-height: 0; }
   .bento > .area-e { min-height: 0; }
