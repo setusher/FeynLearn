@@ -94,6 +94,24 @@ export type Challenge = {
 
 export type Note = { id: string; title: string; text: string; createdAt: number; sample?: boolean };
 
+/**
+ * The session shown in the Session box (dashboard and /session). Kept in settings
+ * so a refresh returns to it. `sessionId` is set once the session record exists
+ * (first message in Explain, generation in Catch the mistake).
+ */
+export type ActiveSession = {
+  mode: Mode;
+  topic: string;
+  persona?: string;
+  difficulty?: Difficulty;
+  focus?: string;
+  angle?: "analogy";
+  sessionId?: string;
+  /** Explain: "result" after the analysis has been saved. */
+  view?: "chat" | "result";
+  startedAt: number;
+};
+
 /** Single settings row stored under key "app". */
 export type Settings = {
   key: "app";
@@ -101,6 +119,7 @@ export type Settings = {
   theme: "dark";
   /** True once demo data has been auto-loaded, so it is not loaded again after "Clear all data". */
   seeded: boolean;
+  active?: ActiveSession;
 };
 
 export type RevisitAngle = "persona" | "analogy" | "apply" | "reverse";

@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./db";
-import type { Settings } from "./types";
+import type { ActiveSession, Settings } from "./types";
 
 const DEFAULTS: Settings = { key: "app", theme: "dark", seeded: false };
 
@@ -13,6 +13,21 @@ export async function getSettings(): Promise<Settings> {
 export async function updateSettings(patch: Partial<Omit<Settings, "key">>): Promise<void> {
   const current = await getSettings();
   await db.settings.put({ ...current, ...patch, key: "app" });
+}
+
+/** Start (or replace) the session shown in the Session box. */
+export async function setActive(active: Omit<ActiveSession, "startedAt"> & { startedAt?: number }): Promise<void> {
+  await updateSettings({ active: { startedAt: Date.now(), ...active } });
+}
+
+/** Merge changes into the active session, if there is one. */
+export async function patchActive(patch: Partial<ActiveSession>): Promise<void> {
+  const current = await getSettings();
+  if (current.active) await updateSettings({ active: { ...current.active, ...patch } });
+}
+
+export async function clearActive(): Promise<void> {
+  await updateSettings({ active: undefined });
 }
 
 /** Live settings; `undefined` while IndexedDB is loading. */
