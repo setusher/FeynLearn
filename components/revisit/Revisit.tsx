@@ -56,12 +56,12 @@ export function Revisit({ highlight }: { highlight?: string }) {
   }
 
   return (
-    <div className="grid gap-4 desk:h-[calc(100vh-121px)] desk:min-h-[640px] desk:grid-cols-12 desk:grid-rows-[minmax(0,1fr)_minmax(0,1.15fr)]">
+    <div className="grid gap-4 desk:h-[calc(100vh-121px)] desk:min-h-[640px] desk:grid-cols-12 desk:grid-rows-[auto_minmax(0,1fr)]">
       <h1 className="sr-only">Revisit</h1>
       <Box
         id="due"
         title={`Due now${due.length ? ` (${due.length})` : ""}`}
-        className="min-h-[240px] desk:col-span-7 desk:min-h-0"
+        className="min-h-[200px] desk:col-span-7 desk:max-h-[45vh]"
         extra={sample ? <SampleChip /> : undefined}
         bodyClassName="gap-2"
       >
